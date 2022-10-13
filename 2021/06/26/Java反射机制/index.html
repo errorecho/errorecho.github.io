@@ -1,0 +1,493 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/icon.png">
+  <link rel="icon" href="/img/icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="前言因为对Java Web安全这一块没有做过研究，趁着时间学习一下Java Web安全的知识。
+本文将对Java反射机制做一个简单的讲述。">
+  <meta name="author" content="Errorecho">
+  <meta name="keywords" content="">
+  <meta name="description" content="前言因为对Java Web安全这一块没有做过研究，趁着时间学习一下Java Web安全的知识。 本文将对Java反射机制做一个简单的讲述。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java反射机制">
+<meta property="og:url" content="http://www.errorecho.com/2021/06/26/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="Errorecho">
+<meta property="og:description" content="前言因为对Java Web安全这一块没有做过研究，趁着时间学习一下Java Web安全的知识。 本文将对Java反射机制做一个简单的讲述。">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-06-26T05:16:06.000Z">
+<meta property="article:modified_time" content="2021-12-02T06:31:42.163Z">
+<meta property="article:author" content="Errorecho">
+<meta property="article:tag" content="反射">
+<meta name="twitter:card" content="summary_large_image">
+  
+  <title>Java反射机制 - Errorecho</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"www.errorecho.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Errorecho&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                主页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                文章
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                类别
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/1.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Java反射机制">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-06-26 13:16" pubdate>
+        June 26, 2021 pm
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.6k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      8 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Java反射机制</h1>
+            
+            <div class="markdown-body">
+              <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>因为对Java Web安全这一块没有做过研究，趁着时间学习一下Java Web安全的知识。</p>
+<p>本文将对Java反射机制做一个简单的讲述。</p>
+<span id="more"></span>
+<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>本文将讲述以下内容</p>
+<ul>
+<li>Java反射机制</li>
+<li>实验-Java反射机制<h1 id="Java反射机制"><a href="#Java反射机制" class="headerlink" title="Java反射机制"></a>Java反射机制</h1><h2 id="什么是Java反射机制？"><a href="#什么是Java反射机制？" class="headerlink" title="什么是Java反射机制？"></a>什么是Java反射机制？</h2>Java反射机制是一种间接操作目标对象的一种机制。其核心在于JVM在运行的时候再动态加载类。并且对于任意一个类，只要知道它的名称，都能知道它的所有属性和方法。对于任意一个对象，都能调用它的任意方法和属性。<br>Java反射机制是Java动态特性的体现，利用反射机制我们可以轻松实现对Java类的动态调用。<h2 id="Java反射常用类"><a href="#Java反射常用类" class="headerlink" title="Java反射常用类"></a>Java反射常用类</h2><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs reasonml"><span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Java</span>.</span></span>lang.Class;<br><br><span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Java</span>.</span></span>lang.ClassLoader;<br><br><span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Java</span>.</span></span>lang.reflect.Constructor;<br><br><span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Java</span>.</span></span>lang.reflect.Field;<br><br><span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Java</span>.</span></span>lang.reflect.Method;<br><br><span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Java</span>.</span></span>lang.reflect.Modifier;<br></code></pre></td></tr></table></figure>
+<h2 id="Java反射常用方法"><a href="#Java反射常用方法" class="headerlink" title="Java反射常用方法"></a>Java反射常用方法</h2></li>
+</ul>
+<ul>
+<li>forName() 获取类</li>
+<li>newInstance() 初始化类</li>
+<li>getMethod() 获取类的方法</li>
+<li>invoke() 执行类的方法</li>
+</ul>
+<h2 id="Java反射的实现"><a href="#Java反射的实现" class="headerlink" title="Java反射的实现"></a>Java反射的实现</h2><ul>
+<li>Object.getClass() 如：String.getClass()</li>
+<li>Test.class() 如：xxx.class()</li>
+<li>Class.forName 如：class.forName(“java.lang.Runtime”)</li>
+</ul>
+<h1 id="实验-反射调用类方法"><a href="#实验-反射调用类方法" class="headerlink" title="实验 - 反射调用类方法"></a>实验 - 反射调用类方法</h1><h2 id="单例实例"><a href="#单例实例" class="headerlink" title="单例实例"></a>单例实例</h2><p>Runtime类的构造方法是私有的，只能通过单例模式用静态方法获取对象，即我们只能通过Runtime().getRuntime()获取Runtime对象。  </p>
+<p>所以，对Runtime的反射代码如下：</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">Class class1 = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Class</span>.</span></span><span class="hljs-keyword">for</span><span class="hljs-constructor">Name(<span class="hljs-string">&quot;java.lang.Runtime&quot;</span>)</span>;   <br>class1.get<span class="hljs-constructor">Method(<span class="hljs-string">&quot;exec&quot;</span>,String.<span class="hljs-params">class</span>)</span>.invoke(class1.get<span class="hljs-constructor">Method(<span class="hljs-string">&quot;getRuntime&quot;</span>)</span>.invoke(class1),<span class="hljs-string">&quot;calc.exe&quot;</span>);<br></code></pre></td></tr></table></figure>
+<p>反射的执行流程如下：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">Class</span> class<span class="hljs-number">1</span> = Class.forName(<span class="hljs-string">&quot;java.lang.Runtime&quot;</span>);  <br><span class="hljs-attribute">Method</span> method<span class="hljs-number">1</span> = class<span class="hljs-number">1</span>.getMethod(<span class="hljs-string">&quot;exec&quot;</span>, String.class);  <br><span class="hljs-attribute">Method</span> method<span class="hljs-number">2</span> = class<span class="hljs-number">1</span>.getMethod(<span class="hljs-string">&quot;getRuntime&quot;</span>);  <br><span class="hljs-attribute">Object</span> run = method<span class="hljs-number">2</span>.invoke(class<span class="hljs-number">1</span>);  <br><span class="hljs-attribute">method1</span>.invoke(run,<span class="hljs-string">&quot;calc.exe&quot;</span>);  <br></code></pre></td></tr></table></figure>
+<p>这里对invoke()函数做一点解释：<br>invoke的功能是执行方法，第一个参数根据方法的不同而不同  </p>
+<ul>
+<li>普通方法，则第一个参数为类的对象</li>
+<li>静态方法，则第一个参数为类</li>
+</ul>
+<h2 id="有参构造的反射"><a href="#有参构造的反射" class="headerlink" title="有参构造的反射"></a>有参构造的反射</h2><p>针对有参数的构造函数，需要引入一个新的反射方法getConstructor  </p>
+<p>getConstructor()，参数为目标类的构造函数参数，返回的是目标类的构造函数。  </p>
+<p>因为Runtime的构造方法是私有的，这里用ProcessBuilder来实现</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">Class class1 = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Class</span>.</span></span><span class="hljs-keyword">for</span><span class="hljs-constructor">Name(<span class="hljs-string">&quot;java.lang.ProcessBuilder&quot;</span>)</span>;  <br>class1.get<span class="hljs-constructor">Method(<span class="hljs-string">&quot;start&quot;</span>)</span>.invoke(class1.get<span class="hljs-constructor">Constructor(List.<span class="hljs-params">class</span>)</span>.<span class="hljs-keyword">new</span><span class="hljs-constructor">Instance(Arrays.<span class="hljs-params">asList</span>(<span class="hljs-string">&quot;calc.exe&quot;</span>)</span>));<br></code></pre></td></tr></table></figure>
+<p>用上强制转化的代码（实际环境不一定存在）</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">Class class1 = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Class</span>.</span></span><span class="hljs-keyword">for</span><span class="hljs-constructor">Name(<span class="hljs-string">&quot;java.lang.ProcessBuilder&quot;</span>)</span>;  <br>((ProcessBuilder)class1.get<span class="hljs-constructor">Constructor(List.<span class="hljs-params">class</span>)</span>.<span class="hljs-keyword">new</span><span class="hljs-constructor">Instance(Arrays.<span class="hljs-params">asList</span>(<span class="hljs-string">&quot;calc.exe&quot;</span>)</span>)).start<span class="hljs-literal">()</span>;<br></code></pre></td></tr></table></figure>
+<h2 id="私有构造函数"><a href="#私有构造函数" class="headerlink" title="私有构造函数"></a>私有构造函数</h2><p>针对私有构造函数，我们可以通过getDeclared系列的函数进行反射。  </p>
+<p>getDeclaredMethod()可以返回目标类的所有方法，包括私有的方法。  </p>
+<p>这里用Runtime举例（因为它的构造方法是私有的）</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">Class class1 = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Class</span>.</span></span><span class="hljs-keyword">for</span><span class="hljs-constructor">Name(<span class="hljs-string">&quot;java.lang.Runtime&quot;</span>)</span>;  <br>Constructor a = class1.get<span class="hljs-constructor">DeclaredConstructor()</span>;  <br>a.set<span class="hljs-constructor">Accessible(<span class="hljs-params">true</span>)</span>;  <br>class1.get<span class="hljs-constructor">Method(<span class="hljs-string">&quot;exec&quot;</span>, String.<span class="hljs-params">class</span>)</span>.invoke(a.<span class="hljs-keyword">new</span><span class="hljs-constructor">Instance()</span>,<span class="hljs-string">&quot;calc.exe&quot;</span>);<br></code></pre></td></tr></table></figure>
+<p>在这里面新出现了个setAccessible，它的作用是修改私有方法的作用域。获取私有方法后必须修改，否则无法成功调用</p>
+<h1 id="实验-反射调用类成员"><a href="#实验-反射调用类成员" class="headerlink" title="实验 - 反射调用类成员"></a>实验 - 反射调用类成员</h1><h2 id="调用公有变量"><a href="#调用公有变量" class="headerlink" title="调用公有变量"></a>调用公有变量</h2><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">Class class1 = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Class</span>.</span></span><span class="hljs-keyword">for</span><span class="hljs-constructor">Name(<span class="hljs-string">&quot;com.javavuln.demo.Person&quot;</span>)</span>;<br>Field f1 = class1.get<span class="hljs-constructor">Field(<span class="hljs-string">&quot;a&quot;</span>)</span>;  <br><span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">System</span>.</span></span>out.println(f1.get(class1.<span class="hljs-keyword">new</span><span class="hljs-constructor">Instance()</span>));<br></code></pre></td></tr></table></figure>
+<h2 id="调用所有变量"><a href="#调用所有变量" class="headerlink" title="调用所有变量"></a>调用所有变量</h2><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">Class class1 = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Class</span>.</span></span><span class="hljs-keyword">for</span><span class="hljs-constructor">Name(<span class="hljs-string">&quot;com.javavuln.demo.Person&quot;</span>)</span>;<br>Field f1 = class1.get<span class="hljs-constructor">DeclaredField(<span class="hljs-string">&quot;b&quot;</span>)</span>;<br>f1.set<span class="hljs-constructor">Accessible(<span class="hljs-params">true</span>)</span>;<br><span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">System</span>.</span></span>out.println(f1.get(class1.<span class="hljs-keyword">new</span><span class="hljs-constructor">Instance()</span>));<br></code></pre></td></tr></table></figure>
+
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><p>本文讲述了Java的反射机制，并对各种情况下的反射进行试验</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p>[<a target="_blank" rel="noopener" href="https://javasec.org/javase/Reflection/Reflection.html]">https://javasec.org/javase/Reflection/Reflection.html]</a></p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Java%E5%AE%89%E5%85%A8/">Java安全</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%8F%8D%E5%B0%84/">反射</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/07/01/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B%E5%A7%94%E6%B4%BE/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">域渗透之委派</span>
+                        <span class="visible-mobile">Previous</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/06/26/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86/">
+                        <span class="hidden-mobile">域渗透之信息收集</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;TOC</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://github.com/errorecho" target="_blank" rel="nofollow noopener"><span>Github</span></a> <i class="iconfont icon-love"></i> <a href="https://www.errorecho.com" target="_blank" rel="nofollow noopener"><span>Blog</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
